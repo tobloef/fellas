@@ -1,1 +1,0 @@
-* Opaque vs non-opaque image
