@@ -11,8 +11,8 @@ const totalCountElement = document.querySelector("#totalCount");
 const spriteWidth = 64;
 const spriteHeight = 64;
 
-let countX = 10;
-let countY = 10;
+let countX = 100;
+let countY = 100;
 
 let count = countX * countY;
 
@@ -20,7 +20,7 @@ const minScale = 0.01;
 const maxScale = 20;
 const scrollSensitivity = 0.005;
 
-let scale = 10;
+let scale = 0.05;
 
 let offset = { x: 0, y: 0 };
 
