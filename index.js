@@ -3,8 +3,6 @@ let countY = 200;
 
 const count =  countX * countY;
 
-console.debug(`Total count: ${count}`);
-
 const container = document.querySelector("#container");
 const fellas = document.querySelector("#fellas");
 

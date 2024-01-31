@@ -6,7 +6,6 @@ body {
   overflow: auto;
   background: black;
   user-select: none;
-  font-family: monospace;
 }
 
 #container {
@@ -31,11 +30,12 @@ body {
   top: 10px;
   right: 10px;
   width: 200px;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
   padding: 20px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
+  font-family: sans-serif;
 
   color: white;
 }
@@ -43,4 +43,9 @@ body {
 #controls input {
   margin-bottom: 20px;
   margin-top: 5px;
+}
+
+#controls hr {
+  color: white;
+  margin: 0px 0 20px 0;
 }
