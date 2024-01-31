@@ -150,7 +150,7 @@ function updateCount() {
 
   countXInput.value = countX;
   countYInput.value = countY;
-  totalCountElement.innerText = count;
+  totalCountElement.innerText = count.toLocaleString();
 }
 
 function mousePosToWorldPos(mousePos, scale, offset) {
