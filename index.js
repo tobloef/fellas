@@ -1,69 +1,91 @@
-let countX = 200;
-let countY = 200;
+// Elements
 
-const count =  countX * countY;
-
-const container = document.querySelector("#container");
-const fellas = document.querySelector("#fellas");
-
-const countXInput = document.querySelector("#countX");
-const countYInput = document.querySelector("#countY");
+const containerElement = document.querySelector("#container");
+const fellasElement = document.querySelector("#fellas");
+const countXInputElement = document.querySelector("#countX");
+const countYInputElement = document.querySelector("#countY");
 const totalCountElement = document.querySelector("#totalCount");
+
+// Parameters
 
 const spriteWidth = 64;
 const spriteHeight = 64;
+
+let countX = 10;
+let countY = 10;
+
+let count = countX * countY;
+
+const minScale = 0.01;
+const maxScale = 20;
+const scrollSensitivity = 0.005;
+
+let scale = 10;
+
+let offset = { x: 0, y: 0 };
+
+let dragging = false;
+
+// Fella factory
+
+const fellas = [];
 
 const colors = [
   "green",
   "red",
   "purple",
   "yellow",
-]
+];
 
 const urls = colors.map(color => `assets/froggy/froggy_${color}/tile000.png`);
 
-const images = [];
+const randomUrl = () => urls[randomInt(0, urls.length - 1)];
 
-const minScale = 0.01;
-const maxScale = 20;
-const scrollSensitivity = 0.005;
-
-let scale = 4;
-
-// This is before scaling
-const offset = {
-  x: ((container.clientWidth / 2) / scale) - (countX * spriteWidth / 2),
-  y: ((container.clientHeight / 2) / scale) - (countY * spriteHeight / 2),
-};
-
-updateCount();
-updateScale();
-updateOffset();
-
-for (let i = 0; i < count; i++) {
-  const url = urls[randomInt(0, urls.length - 1)]; // + `?${i}`;
-  const img = document.createElement("img");
-  img.src = url;
-  img.draggable = false;
-  images.push(img);
-  fellas.appendChild(img);
+const createFella = () => {
+  const fella = document.createElement("img");
+  fella.src = randomUrl();
+  fella.draggable = false;
+  fellasElement.appendChild(fella);
+  return fella;
 }
 
-let dragging = false;
+const ensureFellas = (count) => {
+  if (fellas.length > count) {
+    const fellasToRemove = fellas.length - count;
+    const removedFellas = fellas.splice(0, fellasToRemove);
+    removedFellas.forEach(fella => fella.remove());
+  }
 
-container.addEventListener("mousedown", () => {
+  if (fellas.length < count) {
+    const fellasToAdd = count - fellas.length;
+    for (let i = 0; i < fellasToAdd; i++) {
+      const fella = createFella();
+      fellas.push(fella);
+    }
+  }
+};
+
+// Initialization
+
+updateCount(countX, countY);
+updateScale(scale);
+updateOffset(getCenteredOffset());
+
+// Event listeners
+
+containerElement.addEventListener("mousedown", () => {
   dragging = true;
 });
 
-container.addEventListener("mouseup", () => {
+containerElement.addEventListener("mouseup", () => {
   dragging = false;
 });
 
-container.addEventListener("mouseleave", () => {
+containerElement.addEventListener("mouseleave", () => {
   dragging = false;
 });
 
-container.addEventListener("mousemove", (e) => {
+containerElement.addEventListener("mousemove", (e) => {
   if (!dragging) return;
 
   const newMousePos = {
@@ -84,13 +106,15 @@ container.addEventListener("mousemove", (e) => {
     y: newWorldPos.y - oldWorldPos.y,
   };
 
-  offset.x += deltaWorldPos.x;
-  offset.y += deltaWorldPos.y;
+  const newOffset = {
+    x: offset.x + deltaWorldPos.x,
+    y: offset.y + deltaWorldPos.y,
+  };
 
-  updateOffset();
+  updateOffset(newOffset);
 });
 
-container.addEventListener("wheel", (e) => {
+containerElement.addEventListener("wheel", (e) => {
   e.preventDefault();
 
   const delta = e.deltaY * scrollSensitivity;
@@ -116,42 +140,57 @@ container.addEventListener("wheel", (e) => {
     y: newWorldPos.y - oldWorldPos.y,
   };
 
-  offset.x += deltaWorldPos.x;
-  offset.y += deltaWorldPos.y;
+  const newOffset = {
+    x: offset.x + deltaWorldPos.x,
+    y: offset.y + deltaWorldPos.y,
+  };
 
+  updateScale(newScale);
+  updateOffset(newOffset);
+});
+
+countXInputElement.addEventListener("change", () => {
+  const newCountX = countXInputElement.value;
+  updateCount(newCountX, countY);
+});
+
+countYInputElement.addEventListener("change", () => {
+  const newCountY = countYInputElement.value;
+  updateCount(countX, newCountY);
+});
+
+// Parameter update functions
+
+function updateScale(newScale) {
   scale = newScale;
 
-  updateOffset();
-  updateScale();
-});
-
-countXInput.addEventListener("change", () => {
-  countX = parseInt(countXInput.value);
-  updateCount();
-});
-
-countYInput.addEventListener("change", () => {
-  countY = parseInt(countYInput.value);
-  updateCount();
-});
-
-function updateScale() {
-  fellas.style.transform = `scale(${scale})`;
+  fellasElement.style.transform = `scale(${scale})`;
 }
 
-function updateOffset() {
-  fellas.style.top = `${offset.y * scale}px`;
-  fellas.style.left = `${offset.x * scale}px`;
+function updateOffset(newOffset) {
+  offset = newOffset;
+
+  fellasElement.style.top = `${offset.y * scale}px`;
+  fellasElement.style.left = `${offset.x * scale}px`;
 }
 
-function updateCount() {
-  fellas.style.width = `${countX * spriteWidth}px`;
-  fellas.style.height = `${countY * spriteHeight}px`;
+function updateCount(newCountX, newCountY) {
+  countX = newCountX;
+  countY = newCountY;
 
-  countXInput.value = countX;
-  countYInput.value = countY;
+  count = countX * countY;
+
+  ensureFellas(count);
+
+  fellasElement.style.width = `${countX * spriteWidth}px`;
+  fellasElement.style.height = `${countY * spriteHeight}px`;
+
+  countXInputElement.value = countX;
+  countYInputElement.value = countY;
   totalCountElement.innerText = count.toLocaleString();
 }
+
+// Helper functions
 
 function mousePosToWorldPos(mousePos, scale, offset) {
   return {
@@ -166,4 +205,11 @@ function randomInt(min, max) {
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
+}
+
+function getCenteredOffset() {
+  return {
+    x: ((containerElement.clientWidth / 2) / scale) - (countX * spriteWidth / 2),
+    y: ((containerElement.clientHeight / 2) / scale) - (countY * spriteHeight / 2),
+  }
 }
