@@ -36,6 +36,8 @@ body {
   border-radius: 10px;
   display: flex;
   flex-direction: column;
+
+  color: white;
 }
 
 #controls input {
