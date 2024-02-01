@@ -1,11 +1,11 @@
 ## Notes
 
 * Hardware acceleration makes a positive difference (with `<img>`) on Chrome
-* The DOM does not re-render when not changing
+* See how at 1M `<img>`, we're bottle-necked by the CPU.
 
 ## Comparisons
 
-* Perf of Rendering vs Updating vs Transforming
+* Performance of Rendering vs Updating vs Transforming
 
 ### `<img>`
 * With vs without hardware acceleration
