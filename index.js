@@ -39,11 +39,11 @@ const colors = [
 
 const urls = colors.map(color => `assets/froggy/froggy_${color}/tile000.png`);
 
-const randomUrl = () => urls[randomInt(0, urls.length - 1)];
+const randomUrl = (unique) => urls[randomInt(0, urls.length - 1)] + (unique ? `?${Math.random()}` : "");
 
 const createFella = () => {
   const fella = document.createElement("img");
-  fella.src = randomUrl();
+  fella.src = randomUrl(false);
   fella.draggable = false;
   fellasElement.appendChild(fella);
   return fella;
@@ -158,6 +158,22 @@ countYInputElement.addEventListener("change", () => {
   const newCountY = countYInputElement.value;
   updateCount(countX, newCountY);
 });
+
+// Fella updates
+
+const updateFellas = () => {
+  const fellasPerFrame = 1;
+  for (let i = 0; i < fellasPerFrame; i++) {
+    const fella = fellas[randomInt(0, fellas.length - 1)];
+    fella.src = randomUrl(false);
+  }
+};
+
+const animate = () => {
+  updateFellas();
+  requestAnimationFrame(animate);
+}
+animate()
 
 // Parameter update functions
 
