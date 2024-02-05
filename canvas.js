@@ -18,7 +18,7 @@ const minScale = 0.01;
 const maxScale = 20;
 const scrollSensitivity = 0.005;
 
-let scale = 0.1;
+let scale = 0.05;
 let offset = { x: 0, y: 0 };
 
 let dragging = false;
@@ -26,6 +26,8 @@ let dragging = false;
 // Fella factory
 
 const fellas = [];
+
+const images = {};
 
 const colors = [
   "green",
@@ -37,12 +39,18 @@ const colors = [
 const still_urls = colors.map(color => `assets/froggy/froggy_${color}/tile000.png`);
 const animated_urls = colors.map(color => `assets/froggy/froggy_${color}.gif`);
 
-const randomUrl = (urls, unique = true) => urls[randomInt(0, urls.length - 1)] + (unique ? `?${Math.random()}` : "");
+const randomUrl = (urls, unique = false) => urls[randomInt(0, urls.length - 1)] + (unique ? `?${Math.random()}` : "");
 
 const createFella = async () => {
-  const url = randomUrl(still_urls, false);
-  const fella = new Image();
-  fella.src = url;
+  const url = randomUrl(still_urls);
+
+  if (!images[url]) {
+    images[url] = new Image();
+    images[url].src = url;
+  }
+
+  const fella = images[url];
+
   return fella;
 }
 
@@ -71,11 +79,12 @@ observeSize(canvasElement, (width, height) => {
 });
 
 await updateCount(countX, countY);
+updateOffset(getCenteredOffset());
 
 const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false  });
 ctx.imageSmoothingEnabled = false;
 
-// Temp
+// Update functions
 
 async function updateCount(newCountX, newCountY) {
   countX = newCountX;
@@ -191,6 +200,7 @@ countYInputElement.addEventListener("change", async () => {
 
 const draw = () => {
   ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
   for (let i = 0; i < fellas.length; i++) {
     const fella = fellas[i];
     const x = (i % countX) * spriteWidth * scale + offset.x * scale;
@@ -269,7 +279,7 @@ function clamp(value, min, max) {
 
 function getCenteredOffset() {
   return {
-    x: ((containerElement.clientWidth / 2) / scale) - (countX * spriteWidth / 2),
-    y: ((containerElement.clientHeight / 2) / scale) - (countY * spriteHeight / 2),
+    x: canvasElement.width / 2 + countX * spriteWidth / 2,
+    y: canvasElement.height / 2 + countY * spriteHeight / 2,
   }
 }

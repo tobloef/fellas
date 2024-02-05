@@ -3,6 +3,8 @@
 * Hardware acceleration makes a positive difference (with `<img>`) on Chrome
 * See how at 1M `<img>`, we're bottle-necked by the CPU.
 * See how opaque versions perform for every version.
+* Look at memory performance at some point
+* Disabling image scaling for the `Canvas` version actually only seems to make performance worse. Why? 
 
 ## Rules/Requirements
 
@@ -20,9 +22,18 @@
 * Unique urls vs common urls
 * PNGs vs GIFs
 
+### `Canvas`
+* Integer coordinates and scaling
+* No scaling
+* Disabling pixel-art sampling
+* Calculated transformation vs CSS
+* Animated vs still
+* Full vs diff drawing
+* Unique vs common urls
+* Common Image(s)
+
 ## TODO
 
-* Try canvas with pre-scaled image in canvas
 * Try canvas with pure CSS pan/zoom
 * Try only drawing diffs for the canvas
 * Render animated fellas on the canvas
