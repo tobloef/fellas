@@ -4,12 +4,11 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Fellas</title>
-	<link rel="stylesheet" href="index.css">
+	<link rel="stylesheet" href="canvas.css">
 </head>
 <body>
 	<div id="controls">
-		<p>This version is using HTML and CSS for rendering.</p>
-		<p>Specifically, <code>&lt;img&gt;</code> tags for displaying images, <code>transform</code> for zooming, and <code>position: absolute</code> for panning.</p>
+		<p>This version is using Canvas for rendering.</p>
 
 		<hr>
 
@@ -21,9 +20,7 @@
 
 		<span>Total count: <span id="totalCount"></span></span>
 	</div>
-	<div id="container">
-		<div id="fellas"></div>
-	</div>
-	<script type="module" src="index.js"></script>
+	<canvas id="canvas"></canvas>
+	<script type="module" src="canvas.js"></script>
 </body>
 </html>
