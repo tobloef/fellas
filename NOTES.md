@@ -25,3 +25,4 @@
 * Try canvas with pre-scaled image in canvas
 * Try canvas with pure CSS pan/zoom
 * Try only drawing diffs for the canvas
+* Render animated fellas on the canvas
