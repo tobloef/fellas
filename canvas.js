@@ -72,7 +72,7 @@ observeSize(canvasElement, (width, height) => {
 
 await updateCount(countX, countY);
 
-const ctx = canvasElement.getContext("2d");
+const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false  });
 ctx.imageSmoothingEnabled = false;
 
 // Temp
@@ -89,6 +89,16 @@ async function updateCount(newCountX, newCountY) {
   countYInputElement.value = countY;
   totalCountElement.innerText = count.toLocaleString();
 }
+
+function updateOffset(newOffset) {
+  const integerOffset = {
+    x: Math.round(newOffset.x),
+    y: Math.round(newOffset.y),
+  };
+
+  offset = newOffset;
+}
+
 // Event listeners
 
 canvasElement.addEventListener("mousedown", () => {
@@ -129,7 +139,7 @@ canvasElement.addEventListener("mousemove", (e) => {
     y: offset.y + deltaWorldPos.y,
   };
 
-  offset = newOffset;
+  updateOffset(newOffset);
 });
 
 canvasElement.addEventListener("wheel", (e) => {
@@ -164,7 +174,7 @@ canvasElement.addEventListener("wheel", (e) => {
   };
 
   scale = newScale;
-  offset = newOffset;
+  updateOffset(newOffset);
 });
 
 countXInputElement.addEventListener("change", async () => {
@@ -186,7 +196,13 @@ const draw = () => {
     const x = (i % countX) * spriteWidth * scale + offset.x * scale;
     const y = Math.floor(i / countX) * spriteHeight * scale + offset.y * scale;
 
-    ctx.drawImage(fella, x, y, spriteWidth * scale, spriteHeight * scale);
+    ctx.drawImage(
+      fella,
+      x,
+      y,
+      spriteWidth * scale,
+      spriteHeight * scale
+    );
   }
 }
 

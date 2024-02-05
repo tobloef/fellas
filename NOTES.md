@@ -2,6 +2,7 @@
 
 * Hardware acceleration makes a positive difference (with `<img>`) on Chrome
 * See how at 1M `<img>`, we're bottle-necked by the CPU.
+* See how opaque versions perform for every version.
 
 ## Rules/Requirements
 
@@ -21,3 +22,6 @@
 
 ## TODO
 
+* Try canvas with pre-scaled image in canvas
+* Try canvas with pure CSS pan/zoom
+* Try only drawing diffs for the canvas
