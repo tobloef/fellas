@@ -37,13 +37,14 @@ const colors = [
   "yellow",
 ];
 
-const urls = colors.map(color => `assets/froggy/froggy_${color}/tile000.png`);
+const still_urls = colors.map(color => `assets/froggy/froggy_${color}/tile000.png`);
+const animated_urls = colors.map(color => `assets/froggy/froggy_${color}.gif`);
 
-const randomUrl = (unique) => urls[randomInt(0, urls.length - 1)] + (unique ? `?${Math.random()}` : "");
+const randomUrl = (urls, unique = true) => urls[randomInt(0, urls.length - 1)] + (unique ? `?${Math.random()}` : "");
 
 const createFella = () => {
   const fella = document.createElement("img");
-  fella.src = randomUrl(false);
+  fella.src = randomUrl(still_urls);
   fella.draggable = false;
   fellasElement.appendChild(fella);
   return fella;
@@ -161,16 +162,33 @@ countYInputElement.addEventListener("change", () => {
 
 // Fella updates
 
-const updateFellas = () => {
-  const fellasPerFrame = 1;
-  for (let i = 0; i < fellasPerFrame; i++) {
+const swapFellas = () => {
+  const swapsPerFrame = 1;
+  for (let i = 0; i < swapsPerFrame; i++) {
     const fella = fellas[randomInt(0, fellas.length - 1)];
-    fella.src = randomUrl(false);
+    if (fella.src.includes(".gif")) {
+      fella.src = randomUrl(still_urls);
+    } else {
+      fella.src = randomUrl(animated_urls);
+    }
   }
 };
 
+const animateFellas = () => {
+  const animatesPerFrame = 1;
+  for (let i = 0; i < animatesPerFrame; i++) {
+    const fella = fellas[randomInt(0, fellas.length - 1)];
+    if (fella.src.includes(".gif")) {
+      fella.src = randomUrl(still_urls);
+    } else {
+      fella.src = randomUrl(animated_urls);
+    }
+  }
+}
+
 const animate = () => {
-  updateFellas();
+  swapFellas();
+  animateFellas();
   requestAnimationFrame(animate);
 }
 animate()

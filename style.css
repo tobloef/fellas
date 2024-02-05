@@ -3,7 +3,7 @@ body {
   height: 100%;
   margin: 0;
   box-sizing: border-box;
-  overflow: auto;
+  overflow: hidden;
   background: black;
   user-select: none;
 }
