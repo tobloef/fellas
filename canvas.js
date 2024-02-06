@@ -1,15 +1,12 @@
-// Elements
-
-const canvasElement = document.querySelector("#canvas");
-const containerElement = document.querySelector("#container");
-const countXInputElement = document.querySelector("#countX");
-const countYInputElement = document.querySelector("#countY");
-const totalCountElement = document.querySelector("#totalCount");
-
 // Parameters
 
 const USE_CSS_TRANSFORM = true;
 const USE_DIFF_DRAW = true;
+const USE_WORKER = true;
+const USE_BITMAP = true; // Needs to be true if USE_WORKER is true
+const BULK_POST_SWAPS = true; // Required when swaps per frame is high
+
+const SWAPS_PER_FRAME = 1000;
 
 const spriteWidth = 64;
 const spriteHeight = 64;
@@ -28,6 +25,23 @@ let offset = { x: 0, y: 0 };
 let dragging = false;
 let needsGlobalRedraw = true;
 let didPan = false;
+
+// Elements
+
+const canvasElement = document.querySelector("#canvas");
+const containerElement = document.querySelector("#container");
+const countXInputElement = document.querySelector("#countX");
+const countYInputElement = document.querySelector("#countY");
+const totalCountElement = document.querySelector("#totalCount");
+
+let canvas = canvasElement;
+let worker;
+
+if (USE_WORKER) {
+  const offscreenCanvas = canvasElement.transferControlToOffscreen();
+  canvas = offscreenCanvas;
+  worker = new Worker("canvas-worker.js");
+}
 
 // Fella factory
 
@@ -51,8 +65,15 @@ const createFella = async () => {
   const url = randomUrl(still_urls);
 
   if (!images[url]) {
-    images[url] = new Image();
-    images[url].src = url;
+    const image = new Image();
+    image.src = url;
+    if (USE_BITMAP) {
+      await image.decode();
+      const bitmap = await createImageBitmap(image);
+      images[url] = bitmap;
+    } else {
+      images[url] = image;
+    }
   }
 
   const image = images[url];
@@ -73,15 +94,26 @@ const ensureFellas = async (count) => {
       fellas.push({ image, needsRedraw: true });
     }
   }
+
+  if (USE_WORKER) {
+    worker.postMessage({ type: "fellas", fellas });
+  }
 };
 
 // Setup
 
+let ctx;
+
 observeSize(canvasElement, (width, height) => {
-  canvasElement.width = width;
-  canvasElement.height = height;
-  ctx.imageSmoothingEnabled = false;
+  canvas.width = width;
+  canvas.height = height;
+  if (ctx != null) {
+    ctx.imageSmoothingEnabled = false;
+  }
   needsGlobalRedraw = true;
+  if (USE_WORKER) {
+    worker.postMessage({ type: "size", width, height });
+  }
   if (!didPan) {
     updateOffset(getCenteredOffset());
   }
@@ -91,8 +123,26 @@ await updateCount(countX, countY);
 updateScale(scale);
 updateOffset(getCenteredOffset());
 
-const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false });
-ctx.imageSmoothingEnabled = false;
+if (USE_WORKER) {
+  worker.postMessage(
+    {
+      type: "setup",
+      canvas,
+      USE_DIFF_DRAW,
+      USE_CSS_TRANSFORM,
+      spriteWidth,
+      spriteHeight,
+      countX,
+      countY,
+      scale,
+      offset,
+    },
+    [canvas]
+  );
+} else {
+  ctx = canvasElement.getContext("2d", { alpha: false, antialias: false });
+  ctx.imageSmoothingEnabled = false;
+}
 
 // Update functions
 
@@ -112,6 +162,10 @@ async function updateCount(newCountX, newCountY) {
   countXInputElement.value = countX;
   countYInputElement.value = countY;
   totalCountElement.innerText = count.toLocaleString();
+
+  if (USE_WORKER) {
+    worker.postMessage({ type: "count", countX, countY });
+  }
 }
 
 function updateOffset(newOffset) {
@@ -127,6 +181,9 @@ function updateOffset(newOffset) {
     canvasElement.style.left = `${offset.x * scale}px`;
   } else {
     needsGlobalRedraw = true;
+    if (USE_WORKER) {
+      worker.postMessage({ type: "offset", offset });
+    }
   }
 }
 
@@ -135,6 +192,10 @@ function updateScale(newScale) {
 
   if (USE_CSS_TRANSFORM) {
     canvasElement.style.transform = `scale(${scale})`;
+  } else {
+    if (USE_WORKER) {
+      worker.postMessage({ type: "scale", scale });
+    }
   }
 }
 
@@ -234,7 +295,7 @@ countYInputElement.addEventListener("change", async () => {
 
 const draw = () => {
   if (!USE_DIFF_DRAW || needsGlobalRedraw) {
-    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }
 
   for (let i = 0; i < fellas.length; i++) {
@@ -279,19 +340,32 @@ const draw = () => {
 }
 
 const swapFellas = () => {
-  const swapsPerFrame = 10000;
-  for (let i = 0; i < swapsPerFrame; i++) {
+  let bulkSwap = [];
+  for (let i = 0; i < SWAPS_PER_FRAME; i++) {
     const fellaIndex = randomInt(0, fellas.length - 1);
     const url = randomUrl(still_urls);
     const image = images[url];
-    fellas[fellaIndex].image = image;
-    fellas[fellaIndex].needsRedraw = true;
+    const fella = fellas[fellaIndex];
+    fella.image = image;
+    fella.needsRedraw = true;
+    if (USE_WORKER) {
+      if (!BULK_POST_SWAPS) {
+        worker.postMessage({ type: "swap", index: fellaIndex, fella });
+      } else {
+        bulkSwap.push({ index: fellaIndex, fella });
+      }
+    }
+  }
+  if (USE_WORKER && BULK_POST_SWAPS) {
+    worker.postMessage({ type: "swapBulk", fellas: bulkSwap });
   }
 };
 
 const renderLoop = () => {
   swapFellas();
-  draw();
+  if (!USE_WORKER) {
+    draw();
+  }
   requestAnimationFrame(renderLoop);
 }
 
@@ -359,8 +433,8 @@ function getCenteredOffset() {
     }
   } else {
     return {
-      x: (canvasElement.width / scale) / 2 - ((countX * spriteWidth) / 2),
-      y: (canvasElement.height / scale) / 2 - ((countY * spriteHeight) / 2),
+      x: (canvas.width / scale) / 2 - ((countX * spriteWidth) / 2),
+      y: (canvas.height / scale) / 2 - ((countY * spriteHeight) / 2),
     }
   }
 }

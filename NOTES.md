@@ -5,7 +5,8 @@
 * See how opaque versions perform for every version.
 * Look at memory performance at some point
 * Disabling image scaling for the `Canvas` version actually only seems to make performance worse. Why? 
-* Uh oh, `Canvas` has a max size, which is problematic when we use Canvas + CSS tranforms: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
+* Uh oh, `Canvas` has a max size, which is problematic when we use Canvas + CSS transforms: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
+* Use a smoother 60fps (50fps for gifs) animated fella, so we can always zoom in and see whether the slowness is from the rendering or the transformation.
 
 ## Rules/Requirements
 
@@ -17,6 +18,9 @@
 ## Comparisons
 
 * Performance of Rendering vs Updating vs Transforming
+* Performance as count changes
+* Performance as amount of sprites changes
+* Performance as sprite resolution changes
 
 ### `<img>`
 * With vs without hardware acceleration
@@ -35,6 +39,9 @@
 
 ## TODO
 
-* Hot swapped fellas
-* Try only drawing diffs for the canvas
+
+* Optimize swapFellas postMessage usage. Because we're suddenly copying images.
 * Render animated fellas on the canvas
+* Tile multiple canvases
+* Multiple canvases in different threads?
+* Canvas with sprite map
