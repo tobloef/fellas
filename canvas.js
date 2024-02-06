@@ -1,17 +1,20 @@
 // Elements
 
 const canvasElement = document.querySelector("#canvas");
+const containerElement = document.querySelector("#container");
 const countXInputElement = document.querySelector("#countX");
 const countYInputElement = document.querySelector("#countY");
 const totalCountElement = document.querySelector("#totalCount");
 
 // Parameters
 
+const USE_CSS_TRANSFORM = true;
+
 const spriteWidth = 64;
 const spriteHeight = 64;
 
-let countX = 200;
-let countY = 200;
+let countX = 250;
+let countY = 250;
 let count = countX * countY;
 
 const minScale = 0.01;
@@ -22,6 +25,7 @@ let scale = 0.05;
 let offset = { x: 0, y: 0 };
 
 let dragging = false;
+let needsRedraw = true;
 
 // Fella factory
 
@@ -67,21 +71,24 @@ const ensureFellas = async (count) => {
       fellas.push(fella);
     }
   }
+
+  needsRedraw = true;
 };
 
 // Setup
 
 observeSize(canvasElement, (width, height) => {
-  console.debug(width, height)
   canvasElement.width = width;
   canvasElement.height = height;
   ctx.imageSmoothingEnabled = false;
+  needsRedraw = true;
 });
 
 await updateCount(countX, countY);
 updateOffset(getCenteredOffset());
+updateScale(scale);
 
-const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false  });
+const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false });
 ctx.imageSmoothingEnabled = false;
 
 // Update functions
@@ -93,6 +100,11 @@ async function updateCount(newCountX, newCountY) {
   count = countX * countY;
 
   await ensureFellas(count);
+
+  if (USE_CSS_TRANSFORM) {
+    canvasElement.style.width = `${countX * spriteWidth}px`;
+    canvasElement.style.height = `${countY * spriteHeight}px`;
+  }
 
   countXInputElement.value = countX;
   countYInputElement.value = countY;
@@ -106,23 +118,38 @@ function updateOffset(newOffset) {
   };
 
   offset = newOffset;
+
+  if (USE_CSS_TRANSFORM) {
+    canvasElement.style.top = `${offset.y * scale}px`;
+    canvasElement.style.left = `${offset.x * scale}px`;
+  }
+}
+
+function updateScale(newScale) {
+  scale = newScale;
+
+  if (USE_CSS_TRANSFORM) {
+    canvasElement.style.transform = `scale(${scale})`;
+  }
 }
 
 // Event listeners
 
-canvasElement.addEventListener("mousedown", () => {
+const mouseDraggerElement = USE_CSS_TRANSFORM ? containerElement : canvasElement;
+
+mouseDraggerElement.addEventListener("mousedown", () => {
   dragging = true;
 });
 
-canvasElement.addEventListener("mouseup", () => {
+mouseDraggerElement.addEventListener("mouseup", () => {
   dragging = false;
 });
 
-canvasElement.addEventListener("mouseleave", () => {
+mouseDraggerElement.addEventListener("mouseleave", () => {
   dragging = false;
 });
 
-canvasElement.addEventListener("mousemove", (e) => {
+mouseDraggerElement.addEventListener("mousemove", (e) => {
   if (!dragging) return;
 
   const newMousePos = {
@@ -151,7 +178,7 @@ canvasElement.addEventListener("mousemove", (e) => {
   updateOffset(newOffset);
 });
 
-canvasElement.addEventListener("wheel", (e) => {
+mouseDraggerElement.addEventListener("wheel", (e) => {
   e.preventDefault();
 
   const delta = e.deltaY * scrollSensitivity;
@@ -182,7 +209,7 @@ canvasElement.addEventListener("wheel", (e) => {
     y: offset.y + deltaWorldPos.y,
   };
 
-  scale = newScale;
+  updateScale(newScale);
   updateOffset(newOffset);
 });
 
@@ -203,21 +230,41 @@ const draw = () => {
 
   for (let i = 0; i < fellas.length; i++) {
     const fella = fellas[i];
-    const x = (i % countX) * spriteWidth * scale + offset.x * scale;
-    const y = Math.floor(i / countX) * spriteHeight * scale + offset.y * scale;
+
+    let width = spriteWidth;
+    let height = spriteHeight;
+
+    if (!USE_CSS_TRANSFORM) {
+      width *= scale;
+      height *= scale;
+    }
+
+    let x = (i % countX) * width;
+    let y = Math.floor(i / countX) * height;
+
+    if (!USE_CSS_TRANSFORM) {
+      x += offset.x * scale;
+      y += offset.y * scale;
+    }
 
     ctx.drawImage(
       fella,
       x,
       y,
-      spriteWidth * scale,
-      spriteHeight * scale
+      width,
+      height
     );
   }
+
+  console.debug("Finished drawing", count, "fellas");
+
+  needsRedraw = false;
 }
 
 const renderLoop = () => {
-  draw();
+  if (needsRedraw) {
+    draw();
+  }
   requestAnimationFrame(renderLoop);
 }
 
@@ -278,8 +325,15 @@ function clamp(value, min, max) {
 }
 
 function getCenteredOffset() {
-  return {
-    x: canvasElement.width / 2 + countX * spriteWidth / 2,
-    y: canvasElement.height / 2 + countY * spriteHeight / 2,
+  if (USE_CSS_TRANSFORM) {
+    return {
+      x: ((containerElement.clientWidth / 2) / scale) - (countX * spriteWidth / 2),
+      y: ((containerElement.clientHeight / 2) / scale) - (countY * spriteHeight / 2),
+    }
+  } else {
+    return {
+      x: canvasElement.width / 2 + countX * spriteWidth / 2,
+      y: canvasElement.height / 2 + countY * spriteHeight / 2,
+    }
   }
 }

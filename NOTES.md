@@ -5,6 +5,7 @@
 * See how opaque versions perform for every version.
 * Look at memory performance at some point
 * Disabling image scaling for the `Canvas` version actually only seems to make performance worse. Why? 
+* Uh oh, `Canvas` has a max size: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
 
 ## Rules/Requirements
 
@@ -30,7 +31,7 @@
 * Animated vs still
 * Full vs diff drawing
 * Unique vs common urls
-* Common Image(s)
+* Common Image objects instead of many instances
 
 ## TODO
 
