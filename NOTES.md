@@ -5,7 +5,7 @@
 * See how opaque versions perform for every version.
 * Look at memory performance at some point
 * Disabling image scaling for the `Canvas` version actually only seems to make performance worse. Why? 
-* Uh oh, `Canvas` has a max size: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
+* Uh oh, `Canvas` has a max size, which is problematic when we use Canvas + CSS tranforms: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
 
 ## Rules/Requirements
 
@@ -35,6 +35,6 @@
 
 ## TODO
 
-* Try canvas with pure CSS pan/zoom
+* Hot swapped fellas
 * Try only drawing diffs for the canvas
 * Render animated fellas on the canvas

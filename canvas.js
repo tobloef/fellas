@@ -13,8 +13,8 @@ const USE_CSS_TRANSFORM = true;
 const spriteWidth = 64;
 const spriteHeight = 64;
 
-let countX = 250;
-let countY = 250;
+let countX = 100;
+let countY = 100;
 let count = countX * countY;
 
 const minScale = 0.01;
@@ -256,12 +256,22 @@ const draw = () => {
     );
   }
 
-  console.debug("Finished drawing", count, "fellas");
-
   needsRedraw = false;
 }
 
+const swapFellas = () => {
+  const swapsPerFrame = 10;
+  for (let i = 0; i < swapsPerFrame; i++) {
+    const fellaIndex = randomInt(0, fellas.length - 1);
+    const url = randomUrl(still_urls);
+    const image = images[url];
+    fellas[fellaIndex] = image;
+  }
+  needsRedraw = true;
+};
+
 const renderLoop = () => {
+  swapFellas();
   if (needsRedraw) {
     draw();
   }
