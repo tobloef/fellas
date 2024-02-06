@@ -9,12 +9,13 @@ const totalCountElement = document.querySelector("#totalCount");
 // Parameters
 
 const USE_CSS_TRANSFORM = true;
+const USE_DIFF_DRAW = true;
 
 const spriteWidth = 64;
 const spriteHeight = 64;
 
-let countX = 100;
-let countY = 100;
+let countX = 250;
+let countY = 250;
 let count = countX * countY;
 
 const minScale = 0.01;
@@ -25,7 +26,8 @@ let scale = 0.05;
 let offset = { x: 0, y: 0 };
 
 let dragging = false;
-let needsRedraw = true;
+let needsGlobalRedraw = true;
+let didPan = false;
 
 // Fella factory
 
@@ -53,9 +55,9 @@ const createFella = async () => {
     images[url].src = url;
   }
 
-  const fella = images[url];
+  const image = images[url];
 
-  return fella;
+  return image;
 }
 
 const ensureFellas = async (count) => {
@@ -67,12 +69,10 @@ const ensureFellas = async (count) => {
   if (fellas.length < count) {
     const fellasToAdd = count - fellas.length;
     for (let i = 0; i < fellasToAdd; i++) {
-      const fella = await createFella();
-      fellas.push(fella);
+      const image = await createFella();
+      fellas.push({ image, needsRedraw: true });
     }
   }
-
-  needsRedraw = true;
 };
 
 // Setup
@@ -81,12 +81,15 @@ observeSize(canvasElement, (width, height) => {
   canvasElement.width = width;
   canvasElement.height = height;
   ctx.imageSmoothingEnabled = false;
-  needsRedraw = true;
+  needsGlobalRedraw = true;
+  if (!didPan) {
+    updateOffset(getCenteredOffset());
+  }
 });
 
 await updateCount(countX, countY);
-updateOffset(getCenteredOffset());
 updateScale(scale);
+updateOffset(getCenteredOffset());
 
 const ctx = canvasElement.getContext("2d", { alpha: false, antialias: false });
 ctx.imageSmoothingEnabled = false;
@@ -122,6 +125,8 @@ function updateOffset(newOffset) {
   if (USE_CSS_TRANSFORM) {
     canvasElement.style.top = `${offset.y * scale}px`;
     canvasElement.style.left = `${offset.x * scale}px`;
+  } else {
+    needsGlobalRedraw = true;
   }
 }
 
@@ -151,6 +156,8 @@ mouseDraggerElement.addEventListener("mouseleave", () => {
 
 mouseDraggerElement.addEventListener("mousemove", (e) => {
   if (!dragging) return;
+
+  didPan = true;
 
   const newMousePos = {
     x: e.clientX,
@@ -226,10 +233,16 @@ countYInputElement.addEventListener("change", async () => {
 // Rendering
 
 const draw = () => {
-  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  if (!USE_DIFF_DRAW || needsGlobalRedraw) {
+    ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+  }
 
   for (let i = 0; i < fellas.length; i++) {
     const fella = fellas[i];
+
+    if (!fella.needsRedraw && !needsGlobalRedraw && USE_DIFF_DRAW) {
+      continue;
+    }
 
     let width = spriteWidth;
     let height = spriteHeight;
@@ -247,34 +260,38 @@ const draw = () => {
       y += offset.y * scale;
     }
 
+    if (USE_DIFF_DRAW) {
+      ctx.clearRect(x, y, width, height);
+    }
+
     ctx.drawImage(
-      fella,
+      fella.image,
       x,
       y,
       width,
       height
     );
+
+    fella.needsRedraw = false;
   }
 
-  needsRedraw = false;
+  needsGlobalRedraw = false;
 }
 
 const swapFellas = () => {
-  const swapsPerFrame = 10;
+  const swapsPerFrame = 10000;
   for (let i = 0; i < swapsPerFrame; i++) {
     const fellaIndex = randomInt(0, fellas.length - 1);
     const url = randomUrl(still_urls);
     const image = images[url];
-    fellas[fellaIndex] = image;
+    fellas[fellaIndex].image = image;
+    fellas[fellaIndex].needsRedraw = true;
   }
-  needsRedraw = true;
 };
 
 const renderLoop = () => {
   swapFellas();
-  if (needsRedraw) {
-    draw();
-  }
+  draw();
   requestAnimationFrame(renderLoop);
 }
 
@@ -342,8 +359,8 @@ function getCenteredOffset() {
     }
   } else {
     return {
-      x: canvasElement.width / 2 + countX * spriteWidth / 2,
-      y: canvasElement.height / 2 + countY * spriteHeight / 2,
+      x: (canvasElement.width / scale) / 2 - ((countX * spriteWidth) / 2),
+      y: (canvasElement.height / scale) / 2 - ((countY * spriteHeight) / 2),
     }
   }
 }
