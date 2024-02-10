@@ -28,6 +28,7 @@
 * PNGs vs GIFs
 
 ### `Canvas`
+
 * Integer coordinates and scaling
 * No scaling
 * Disabling pixel-art sampling
@@ -39,9 +40,7 @@
 
 ## TODO
 
-
-* Optimize swapFellas postMessage usage. Because we're suddenly copying images.
 * Render animated fellas on the canvas
+* Canvas with sprite map
 * Tile multiple canvases
 * Multiple canvases in different threads?
-* Canvas with sprite map

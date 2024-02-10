@@ -6,7 +6,7 @@ const USE_WORKER = true;
 const USE_BITMAP = true; // Needs to be true if USE_WORKER is true
 const BULK_POST_SWAPS = true; // Required when swaps per frame is high
 
-const SWAPS_PER_FRAME = 1000;
+const SWAPS_PER_FRAME = 10000;
 
 const spriteWidth = 64;
 const spriteHeight = 64;
@@ -19,7 +19,7 @@ const minScale = 0.01;
 const maxScale = 20;
 const scrollSensitivity = 0.005;
 
-let scale = 0.05;
+let scale = 1;
 let offset = { x: 0, y: 0 };
 
 let dragging = false;
@@ -67,8 +67,8 @@ const createFella = async () => {
   if (!images[url]) {
     const image = new Image();
     image.src = url;
+    await image.decode();
     if (USE_BITMAP) {
-      await image.decode();
       const bitmap = await createImageBitmap(image);
       images[url] = bitmap;
     } else {
@@ -76,9 +76,7 @@ const createFella = async () => {
     }
   }
 
-  const image = images[url];
-
-  return image;
+  return { url, needsRedraw: true };
 }
 
 const ensureFellas = async (count) => {
@@ -90,8 +88,8 @@ const ensureFellas = async (count) => {
   if (fellas.length < count) {
     const fellasToAdd = count - fellas.length;
     for (let i = 0; i < fellasToAdd; i++) {
-      const image = await createFella();
-      fellas.push({ image, needsRedraw: true });
+      const fella = await createFella();
+      fellas.push(fella);
     }
   }
 
@@ -107,13 +105,17 @@ let ctx;
 observeSize(canvasElement, (width, height) => {
   canvas.width = width;
   canvas.height = height;
+
   if (ctx != null) {
     ctx.imageSmoothingEnabled = false;
   }
+
   needsGlobalRedraw = true;
+
   if (USE_WORKER) {
     worker.postMessage({ type: "size", width, height });
   }
+
   if (!didPan) {
     updateOffset(getCenteredOffset());
   }
@@ -130,12 +132,15 @@ if (USE_WORKER) {
       canvas,
       USE_DIFF_DRAW,
       USE_CSS_TRANSFORM,
+      USE_BITMAP,
       spriteWidth,
       spriteHeight,
       countX,
       countY,
       scale,
       offset,
+      images,
+      urls: still_urls,
     },
     [canvas]
   );
@@ -325,8 +330,10 @@ const draw = () => {
       ctx.clearRect(x, y, width, height);
     }
 
+    const image = images[fella.url];
+
     ctx.drawImage(
-      fella.image,
+      image,
       x,
       y,
       width,
@@ -344,15 +351,14 @@ const swapFellas = () => {
   for (let i = 0; i < SWAPS_PER_FRAME; i++) {
     const fellaIndex = randomInt(0, fellas.length - 1);
     const url = randomUrl(still_urls);
-    const image = images[url];
     const fella = fellas[fellaIndex];
-    fella.image = image;
+    fella.url = url;
     fella.needsRedraw = true;
     if (USE_WORKER) {
       if (!BULK_POST_SWAPS) {
         worker.postMessage({ type: "swap", index: fellaIndex, fella });
       } else {
-        bulkSwap.push({ index: fellaIndex, fella });
+        bulkSwap.push({ index: fellaIndex, urlIndex: still_urls.indexOf(url) });
       }
     }
   }
@@ -384,8 +390,8 @@ function observeSize(
     for (const entry of entries) {
       const size = entry.devicePixelContentBoxSize?.[0];
 
-      const width = size.inlineSize;
-      const height = size.blockSize;
+      const width = size.inlineSize / window.devicePixelRatio;
+      const height = size.blockSize / window.devicePixelRatio;
 
       if (
         width === previousWidth &&

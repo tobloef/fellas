@@ -1,5 +1,6 @@
 let USE_DIFF_DRAW;
 let USE_CSS_TRANSFORM;
+let USE_BITMAP;
 
 let needsGlobalRedraw = false;
 let fellas = [];
@@ -9,15 +10,18 @@ let countX;
 let countY;
 let scale;
 let offset;
+let urls;
+let images;
 
 let canvas;
 let ctx;
 
-onmessage = (e) => {
+onmessage = async (e) => {
   if (e.data.type === "setup") {
-   canvas = e.data.canvas;
+    canvas = e.data.canvas;
     USE_DIFF_DRAW = e.data.USE_DIFF_DRAW;
     USE_CSS_TRANSFORM = e.data.USE_CSS_TRANSFORM;
+    USE_BITMAP = e.data.USE_BITMAP;
     ctx = canvas.getContext("2d", { alpha: false, antialias: false });
     ctx.imageSmoothingEnabled = false;
     spriteWidth = e.data.spriteWidth;
@@ -26,6 +30,14 @@ onmessage = (e) => {
     countY = e.data.countY;
     scale = e.data.scale;
     offset = e.data.offset;
+    urls = e.data.urls;
+
+    images = {};
+    for (const [url, image] of Object.entries(e.data.images)) {
+      const bitmap = await createImageBitmap(image);
+      images[url] = bitmap;
+    }
+
     renderLoop();
   } else if (e.data.type === "fellas") {
     fellas = e.data.fellas;
@@ -53,8 +65,9 @@ onmessage = (e) => {
     const { index, fella } = e.data;
     fellas[index] = fella;
   } else if (e.data.type === "swapBulk") {
-    for (const { fella, index } of e.data.fellas) {
-      fellas[index] = fella;
+    for (const { urlIndex, index } of e.data.fellas) {
+      fellas[index].url = urls[urlIndex];
+      fellas[index].needsRedraw = true;
     }
   }
 }
@@ -96,8 +109,10 @@ function draw() {
       ctx.clearRect(x, y, width, height);
     }
 
+    const image = images[fella.url];
+
     ctx.drawImage(
-      fella.image,
+      image,
       x,
       y,
       width,
