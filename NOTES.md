@@ -19,13 +19,14 @@
 
 * Performance of Rendering vs Updating vs Transforming
 * Performance as count changes
-* Performance as amount of sprites changes
+* Performance as amount of unique sprites changes
 * Performance as sprite resolution changes
 
 ### `<img>`
 * With vs without hardware acceleration
 * Unique urls vs common urls
 * PNGs vs GIFs
+* Different image formats
 
 ### `Canvas`
 
@@ -40,7 +41,8 @@
 
 ## TODO
 
-* Render animated fellas on the canvas
-* Canvas with sprite map
+* Zoom-pan with another canvas
+* Sprite map
 * Tile multiple canvases
 * Multiple canvases in different threads?
+* Render animated fellas on the canvas
