@@ -85,7 +85,7 @@ export class ImageRendererModule extends RendererModule {
 	}
 
 	#createFella() {
-		const animated = false;
+		const animated = options.animated;
 
 		const variations = Sprites[options.sprites].variations;
 		const variation = randomChoice(variations);

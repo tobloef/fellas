@@ -7,6 +7,11 @@
 * Disabling image scaling for the `Canvas` version actually only seems to make performance worse. Why?
 * Uh oh, `Canvas` has a max size, which is problematic when we use Canvas + CSS transforms: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/canvas#maximum_canvas_size
 * Use a smoother 60fps (50fps for gifs) animated fella, so we can always zoom in and see whether the slowness is from the rendering or the transformation.
+* Browser framerate stats can miss-report, as they're a moving average over a long period.
+  * Therefore, it's nice to add a little high-fps sanity check gif in the corner
+  * See here for an example: https://share.cleanshot.com/6bLnN3mD
+  * You can see how the red and blue sections of the FPS graph alternates. So it's not actually a stable 60fps, it's alternating between a very high and very low FPS (120 and 10, for example).
+  * Notice also how the CPU usage is at 0%. I imagine this is because the browser is mostly using the GPU at that point, as opposed to when we're padding.
 
 ## Rules/Requirements
 
@@ -21,6 +26,7 @@
 * Performance as count changes
 * Performance as amount of unique sprites changes
 * Performance as sprite resolution changes
+* Performance as sprite FPS changes
 
 ### `<img>`
 
@@ -28,6 +34,10 @@
 * Unique urls vs common urls
 * PNGs vs GIFs
 * Different image formats
+* Img vs Div
+  * This is actually only relevant if we want to do the sprite sheet hack
+  * There is a difference in image loading strategy, that results in a lot of black divs when "unique images" is on and there's a (somewhat) high swap rate.
+* Position vs Translate
 
 ### `Canvas`
 

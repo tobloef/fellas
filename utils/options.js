@@ -20,20 +20,20 @@ export const ImgOffsetStrategy = {
 
 export const ImgElementType = {
 	IMG: 'Image',
-	DIV: 'Div + Background',
+	DIV: 'Div',
 }
 
 const DEFAULT_OPTIONS = {
 	renderer: RendererOptions.IMAGE,
 	count: 1000,
 	sprites: SpriteOptions.FROG,
-	animate: true,
+	animated: true,
 	variationChangesPerFrame: 100,
 	animationChangesPerFrame: 100,
 	img: {
 		offsetStrategy: ImgOffsetStrategy.POSITION,
 		uniqueImages: false,
-		elementType: ImgElementType.IMG
+		elementType: ImgElementType.IMG,
 	},
 	canvas: {},
 	webgl: {},
@@ -49,6 +49,12 @@ function optionsFromSearchParams(searchParams) {
 	const searchParamsOptions = {
 		renderer: searchParams.get('renderer'),
 		sprites: searchParams.get('sprites'),
+		animated: searchParams.get('animated')
+			? searchParams.get('animated') === 'true'
+			: undefined,
+		count: searchParams.get('count')
+			? parseInt(searchParams.get('count'))
+			: undefined,
 		variationChangesPerFrame: searchParams.get('variationChangesPerFrame')
 			? parseInt(searchParams.get('variationChangesPerFrame'))
 			: undefined,
@@ -77,8 +83,11 @@ function optionsFromSearchParams(searchParams) {
 function optionsToSearchParams(options) {
 	const searchParams = new URLSearchParams();
 
+
 	searchParams.set('renderer', options.renderer);
 	searchParams.set('sprites', options.sprites);
+	searchParams.set('animated', options.animated);
+	searchParams.set('count', options.count);
 	searchParams.set('variationChangesPerFrame', options.variationChangesPerFrame);
 	searchParams.set('animationChangesPerFrame', options.animationChangesPerFrame);
 	searchParams.set('img.offsetStrategy', options.img.offsetStrategy);

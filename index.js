@@ -9,7 +9,7 @@ import { ImageRendererModule } from './renderer-modules/image-renderer-module.js
 import { camera } from './utils/camera.js';
 
 const rendererModules = {
-	[RendererOptions.IMAGE]: new ImageRendererModule(),
+	[RendererOptions.IMAGE]: ImageRendererModule,
 };
 
 let rendererModule = null;
@@ -32,7 +32,8 @@ inputHandlers.initialize(containerElement, camera, {
 function reinitialize() {
 	rendererModule?.destroy();
 
-	rendererModule = rendererModules[options.renderer];
+	const RendererModuleClass = rendererModules[options.renderer];
+	rendererModule = new RendererModuleClass();
 
 	if (!rendererModule) {
 		alert(`Renderer "${options.renderer}" not implemented yet.`);

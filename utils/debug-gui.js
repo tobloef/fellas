@@ -34,6 +34,13 @@ export function initialize(options, reinitialize, rendererModule) {
 			updateOptionsSearchParams();
 		});
 
+	gui.add(options, 'animated')
+		.name('Animated by default')
+		.onChange(() => {
+			rendererModule.updateSprites();
+			updateOptionsSearchParams();
+		});
+
 	gui.add(options, 'count')
 		.name('Count')
 		.step(1)
