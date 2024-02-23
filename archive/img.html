@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Fellas</title>
+	<link rel="stylesheet" href="img.css">
+</head>
+<body>
+<div id="controls">
+	<p>This version is using HTML and CSS for rendering.</p>
+	<p>Specifically, <code>&lt;img&gt;</code> tags for displaying images, <code>transform</code> for zooming, and <code>position:
+		absolute</code> for panning.</p>
+
+	<hr>
+
+	<label for="countX">Horizontal Count</label>
+	<input type="number" step="1" id="countX">
+
+	<label for="countY">Vertical Count</label>
+	<input type="number" step="1" id="countY">
+
+	<span>Total count: <span id="totalCount"></span></span>
+</div>
+<div id="container">
+	<div id="fellas"></div>
+</div>
+<script type="module" src="img.js"></script>
+</body>
+</html>

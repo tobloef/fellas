@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Fellas</title>
+	<link rel="stylesheet" href="canvas.css">
+</head>
+<body>
+<div id="controls">
+	<p>This version is using Canvas for rendering.</p>
+
+	<hr>
+
+	<label for="countX">Horizontal Count</label>
+	<input type="number" step="1" id="countX">
+
+	<label for="countY">Vertical Count</label>
+	<input type="number" step="1" id="countY">
+
+	<span>Total count: <span id="totalCount"></span></span>
+</div>
+<div id="container">
+	<canvas id="canvas" class="css-transform"></canvas>
+</div>
+<script type="module" src="canvas.js"></script>
+</body>
+</html>
