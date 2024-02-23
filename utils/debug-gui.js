@@ -9,6 +9,8 @@ import { sprites } from './sprites.js';
 export function initialize(options, reinitialize, rendererModule) {
 	const gui = new dat.GUI();
 
+	gui.width = 300;
+
 	let folders = {};
 
 	gui.add(options, 'renderer', Object.values(RendererOptions))
@@ -33,8 +35,23 @@ export function initialize(options, reinitialize, rendererModule) {
 
 	gui.add(options, 'count')
 		.name('Count')
+		.step(1)
 		.onChange(() => {
 			rendererModule.updateCount();
+			updateOptionsSearchParams();
+		});
+
+	gui.add(options, 'animationChangesPerFrame')
+		.name('Animation Changes Per Frame')
+		.step(1)
+		.onChange(() => {
+			updateOptionsSearchParams();
+		});
+
+	gui.add(options, 'variationChangesPerFrame')
+		.name('Variation Changes Per Frame')
+		.step(1)
+		.onChange(() => {
 			updateOptionsSearchParams();
 		});
 

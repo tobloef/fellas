@@ -20,8 +20,11 @@ export const ImgOffsetStrategy = {
 
 const DEFAULT_OPTIONS = {
 	renderer: RendererOptions.IMAGE,
-	count: 3_000,
+	count: 100,
 	sprites: SpriteOptions.FROG,
+	animate: true,
+	variationChangesPerFrame: 100,
+	animationChangesPerFrame: 100,
 	img: {
 		offsetStrategy: ImgOffsetStrategy.POSITION,
 		uniqueImages: false,
@@ -40,6 +43,12 @@ function optionsFromSearchParams(searchParams) {
 	const searchParamsOptions = {
 		renderer: searchParams.get('renderer'),
 		sprites: searchParams.get('sprites'),
+		variationChangesPerFrame: searchParams.get('variationChangesPerFrame')
+			? parseInt(searchParams.get('variationChangesPerFrame'))
+			: undefined,
+		animationChangesPerFrame: searchParams.get('animationChangesPerFrame')
+			? parseInt(searchParams.get('animationChangesPerFrame'))
+			: undefined,
 		img: {
 			offsetStrategy: searchParams.get('img.offsetStrategy'),
 			uniqueImages: searchParams.get('img.uniqueImages')
@@ -63,6 +72,8 @@ function optionsToSearchParams(options) {
 
 	searchParams.set('renderer', options.renderer);
 	searchParams.set('sprites', options.sprites);
+	searchParams.set('variationChangesPerFrame', options.variationChangesPerFrame);
+	searchParams.set('animationChangesPerFrame', options.animationChangesPerFrame);
 	searchParams.set('img.offsetStrategy', options.img.offsetStrategy);
 	searchParams.set('img.uniqueImages', options.img.uniqueImages);
 

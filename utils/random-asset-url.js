@@ -1,7 +1,7 @@
-import { randomInt } from './random-int.js';
+import { randomChoice } from './random.js';
 
 export function randomAssetUrl(urlFunc, variations, unique = true) {
-	const variation = variations[randomInt(0, variations.length - 1)];
+	const variation = randomChoice(variations);
 	let url = urlFunc(variation);
 
 	if (unique) {
