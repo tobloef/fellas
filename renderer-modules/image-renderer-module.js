@@ -1,16 +1,17 @@
 import { RendererModule } from './renderer-module.js';
 import {
+	ImgElementType,
 	ImgOffsetStrategy,
 	options,
 } from '../utils/options.js';
 import { getRowsAndColumns } from '../utils/get-rows-and-columns.js';
 import { camera } from '../utils/camera.js';
-import { sprites } from '../utils/sprites.js';
+import { Sprites } from '../utils/sprites.js';
 import { randomChoice } from '../utils/random.js';
 
 export class ImageRendererModule extends RendererModule {
 	#fellas = [];
-	#imagesElement = null;
+	#fellasElement = null;
 	#containerElement = null;
 	#animationFrame = null;
 
@@ -19,17 +20,17 @@ export class ImageRendererModule extends RendererModule {
 	) {
 		this.#containerElement = containerElement;
 
-		this.#imagesElement = document.createElement('div');
-		this.#containerElement.appendChild(this.#imagesElement);
+		this.#fellasElement = document.createElement('div');
+		this.#containerElement.appendChild(this.#fellasElement);
 
-		this.#imagesElement.style.overflow = 'hidden';
-		this.#imagesElement.style.position = 'absolute';
-		this.#imagesElement.style.width = '100%';
-		this.#imagesElement.style.height = '100%';
-		this.#imagesElement.style.transformOrigin = 'top left';
-		this.#imagesElement.style.imageRendering = 'pixelated';
-		this.#imagesElement.style.userSelect = 'none';
-		this.#imagesElement.style.fontSize = '0'
+		this.#fellasElement.style.overflow = 'hidden';
+		this.#fellasElement.style.position = 'absolute';
+		this.#fellasElement.style.width = '100%';
+		this.#fellasElement.style.height = '100%';
+		this.#fellasElement.style.transformOrigin = 'top left';
+		this.#fellasElement.style.imageRendering = 'pixelated';
+		this.#fellasElement.style.userSelect = 'none';
+		this.#fellasElement.style.fontSize = '0'
 
 		this.updateSprites();
 		this.updateSize();
@@ -40,7 +41,7 @@ export class ImageRendererModule extends RendererModule {
 	}
 
 	updateCount() {
-		this.#fellas.forEach(fella => fella.image.remove());
+		this.#fellas.forEach(fella => fella.element.remove());
 
 		for (let i = 0; i < options.count; i++) {
 			const fella = this.#createFella();
@@ -49,19 +50,21 @@ export class ImageRendererModule extends RendererModule {
 
 		let { rowsWithOverflow, columns } = getRowsAndColumns(options.count);
 
-		this.#imagesElement.style.width = `${columns * sprites[options.sprites].width}px`;
-		this.#imagesElement.style.height = `${rowsWithOverflow * sprites[options.sprites].height}px`;
+		const sprites = Sprites[options.sprites];
+
+		this.#fellasElement.style.width = `${columns * sprites.width}px`;
+		this.#fellasElement.style.height = `${rowsWithOverflow * sprites.height}px`;
 	}
 
 	updateCamera() {
 		if (options.img.offsetStrategy === ImgOffsetStrategy.POSITION) {
-			this.#imagesElement.style.top = `${camera.offset.y * camera.scale}px`;
-			this.#imagesElement.style.left = `${camera.offset.x * camera.scale}px`;
-			this.#imagesElement.style.transform = `scale(${camera.scale})`;
+			this.#fellasElement.style.top = `${camera.offset.y * camera.scale}px`;
+			this.#fellasElement.style.left = `${camera.offset.x * camera.scale}px`;
+			this.#fellasElement.style.transform = `scale(${camera.scale})`;
 		} else {
-			this.#imagesElement.style.top = '0';
-			this.#imagesElement.style.left = '0';
-			this.#imagesElement.style.transform = `scale(${camera.scale}) translate(${camera.offset.x}px, ${camera.offset.y}px)`;
+			this.#fellasElement.style.top = '0';
+			this.#fellasElement.style.left = '0';
+			this.#fellasElement.style.transform = `scale(${camera.scale}) translate(${camera.offset.x}px, ${camera.offset.y}px)`;
 		}
 	}
 
@@ -73,29 +76,43 @@ export class ImageRendererModule extends RendererModule {
 	}
 
 	destroy() {
-		this.#fellas.forEach(fella => fella.image.remove());
+		this.#fellas.forEach(fella => fella.element.remove());
 		this.#fellas = [];
-		this.#imagesElement.remove();
-		this.#imagesElement = null;
+		this.#fellasElement.remove();
+		this.#fellasElement = null;
 		this.#containerElement = null;
 		cancelAnimationFrame(this.#animationFrame);
 	}
 
 	#createFella() {
-		const image = document.createElement('img');
-
 		const animated = false;
 
-		const variations = sprites[options.sprites].variations;
+		const variations = Sprites[options.sprites].variations;
 		const variation = randomChoice(variations);
 
-		image.src = this.#getFellaSrc(variation, animated);
-		image.draggable = false;
-		image.decoding = 'async';
-		this.#imagesElement.appendChild(image);
+		let element = null;
 
+		if (options.img.elementType === ImgElementType.IMG) {
+			element = document.createElement('img');
+			element.draggable = false;
+		} else if (options.img.elementType === ImgElementType.DIV) {
+			const sprites = Sprites[options.sprites];
+			element = document.createElement('div');
+			element.style.display = 'inline-block';
+			element.style.width = `${sprites.width}px`;
+			element.style.height = `${sprites.height}px`;
+			element.style.backgroundSize = 'contain';
+			element.style.backgroundRepeat = 'no-repeat';
+			element.style.imageRendering = 'pixelated';
+		}
 
-		return { image, variation, animated };
+		const fella = { element, variation, animated };
+
+		this.#updateFella(fella);
+
+		this.#fellasElement.appendChild(element);
+
+		return fella;
 	}
 
 	#loop() {
@@ -109,11 +126,11 @@ export class ImageRendererModule extends RendererModule {
 
 	#swapFellas() {
 		for (let i = 0; i < options.variationChangesPerFrame; i++) {
-			const variations = sprites[options.sprites].variations;
+			const variations = Sprites[options.sprites].variations;
 			const newVariation = randomChoice(variations);
 			const fella = randomChoice(this.#fellas);
 			fella.variation = newVariation;
-			fella.image.src = this.#getFellaSrc(newVariation, fella.animated);
+			this.#updateFella(fella);
 		}
 	}
 
@@ -121,21 +138,31 @@ export class ImageRendererModule extends RendererModule {
 		for (let i = 0; i < options.animationChangesPerFrame; i++) {
 			const fella = randomChoice(this.#fellas);
 			fella.animated = !fella.animated;
-			fella.image.src = this.#getFellaSrc(fella.variation, fella.animated);
+			this.#updateFella(fella);
 		}
 	}
 
-	#getFellaSrc(variation, animated) {
-		const srcFunc = animated
-			? sprites[options.sprites].assets.animated
-			: sprites[options.sprites].assets.still;
+	#getFellaSrc(fella) {
+		const srcFunc = fella.animated
+			? Sprites[options.sprites].assets.animated
+			: Sprites[options.sprites].assets.still;
 
-		let src = srcFunc(variation);
+		let src = srcFunc(fella.variation);
 
 		if (options.img.uniqueImages) {
 			src += `?${Math.random()}`;
 		}
 
 		return src;
+	}
+
+	#updateFella(fella) {
+		const src = this.#getFellaSrc(fella);
+
+		if (options.img.elementType === ImgElementType.IMG) {
+			fella.element.src = src;
+		} else if (options.img.elementType === ImgElementType.DIV) {
+			fella.element.style.backgroundImage = `url(${src})`;
+		}
 	}
 }

@@ -1,6 +1,6 @@
 import { SpriteOptions } from './options.js';
 
-export const sprites = {
+export const Sprites = {
 	[SpriteOptions.FROG]: {
 		width: 64,
 		height: 64,

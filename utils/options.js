@@ -18,9 +18,14 @@ export const ImgOffsetStrategy = {
 	TRANSLATE: 'Translate',
 };
 
+export const ImgElementType = {
+	IMG: 'Image',
+	DIV: 'Div + Background',
+}
+
 const DEFAULT_OPTIONS = {
 	renderer: RendererOptions.IMAGE,
-	count: 100,
+	count: 1000,
 	sprites: SpriteOptions.FROG,
 	animate: true,
 	variationChangesPerFrame: 100,
@@ -28,6 +33,7 @@ const DEFAULT_OPTIONS = {
 	img: {
 		offsetStrategy: ImgOffsetStrategy.POSITION,
 		uniqueImages: false,
+		elementType: ImgElementType.IMG
 	},
 	canvas: {},
 	webgl: {},
@@ -54,6 +60,7 @@ function optionsFromSearchParams(searchParams) {
 			uniqueImages: searchParams.get('img.uniqueImages')
 				? searchParams.get('img.uniqueImages') === 'true'
 				: undefined,
+			elementType: searchParams.get('img.elementType'),
 		},
 	};
 
@@ -76,6 +83,7 @@ function optionsToSearchParams(options) {
 	searchParams.set('animationChangesPerFrame', options.animationChangesPerFrame);
 	searchParams.set('img.offsetStrategy', options.img.offsetStrategy);
 	searchParams.set('img.uniqueImages', options.img.uniqueImages);
+	searchParams.set('img.element', options.img.elementType);
 
 	return searchParams;
 }

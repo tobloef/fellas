@@ -1,10 +1,11 @@
 import {
+	ImgElementType,
 	ImgOffsetStrategy,
 	RendererOptions,
 	SpriteOptions,
 	updateOptionsSearchParams,
 } from './options.js';
-import { sprites } from './sprites.js';
+import { Sprites } from './sprites.js';
 
 export function initialize(options, reinitialize, rendererModule) {
 	const gui = new dat.GUI();
@@ -68,6 +69,13 @@ export function initialize(options, reinitialize, rendererModule) {
 	folders[RendererOptions.IMAGE]
 		.add(options.img, 'uniqueImages')
 		.name('Unique Images')
+		.onChange(() => {
+			rendererModule.updateCount();
+			updateOptionsSearchParams();
+		});
+	folders[RendererOptions.IMAGE]
+		.add(options.img, 'elementType', Object.values(ImgElementType))
+		.name('Element Type')
 		.onChange(() => {
 			rendererModule.updateCount();
 			updateOptionsSearchParams();
