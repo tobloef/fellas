@@ -9,7 +9,7 @@ export const RendererOptions = {
 	WEBGPU: 'WebGPU',
 };
 
-export const SpriteOptions = {
+export const SpriteSetOptions = {
 	FROG: 'Frog (64x64)',
 };
 
@@ -26,13 +26,13 @@ export const ImgElementType = {
 const DEFAULT_OPTIONS = {
 	renderer: RendererOptions.IMAGE,
 	count: 1000,
-	sprites: SpriteOptions.FROG,
-	animated: true,
-	variationChangesPerFrame: 100,
-	animationChangesPerFrame: 100,
+	spriteSet: SpriteSetOptions.FROG,
+	isAnimatedByDefault: false,
+	variationChangesPerFrame: 0,
+	animationChangesPerFrame: 0,
 	img: {
 		offsetStrategy: ImgOffsetStrategy.POSITION,
-		uniqueImages: false,
+		useUniqueImages: false,
 		elementType: ImgElementType.IMG,
 	},
 	canvas: {},
@@ -48,9 +48,9 @@ updateOptionsSearchParams();
 function optionsFromSearchParams(searchParams) {
 	const searchParamsOptions = {
 		renderer: searchParams.get('renderer'),
-		sprites: searchParams.get('sprites'),
-		animated: searchParams.get('animated')
-			? searchParams.get('animated') === 'true'
+		spriteSet: searchParams.get('spriteSet'),
+		isAnimatedByDefault: searchParams.get('isAnimatedByDefault')
+			? searchParams.get('isAnimatedByDefault') === 'true'
 			: undefined,
 		count: searchParams.get('count')
 			? parseInt(searchParams.get('count'))
@@ -63,8 +63,8 @@ function optionsFromSearchParams(searchParams) {
 			: undefined,
 		img: {
 			offsetStrategy: searchParams.get('img.offsetStrategy'),
-			uniqueImages: searchParams.get('img.uniqueImages')
-				? searchParams.get('img.uniqueImages') === 'true'
+			useUniqueImages: searchParams.get('img.useUniqueImages')
+				? searchParams.get('img.useUniqueImages') === 'true'
 				: undefined,
 			elementType: searchParams.get('img.elementType'),
 		},
@@ -85,13 +85,13 @@ function optionsToSearchParams(options) {
 
 
 	searchParams.set('renderer', options.renderer);
-	searchParams.set('sprites', options.sprites);
-	searchParams.set('animated', options.animated);
+	searchParams.set('spriteSet', options.spriteSet);
+	searchParams.set('isAnimatedByDefault', options.isAnimatedByDefault);
 	searchParams.set('count', options.count);
 	searchParams.set('variationChangesPerFrame', options.variationChangesPerFrame);
 	searchParams.set('animationChangesPerFrame', options.animationChangesPerFrame);
 	searchParams.set('img.offsetStrategy', options.img.offsetStrategy);
-	searchParams.set('img.uniqueImages', options.img.uniqueImages);
+	searchParams.set('img.useUniqueImages', options.img.useUniqueImages);
 	searchParams.set('img.element', options.img.elementType);
 
 	return searchParams;

@@ -19,3 +19,10 @@ body {
     bottom: 20px;
     right: 20px;
 }
+
+.image-div {
+    display: inline-block;
+    background-size: contain;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}

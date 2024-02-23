@@ -2,12 +2,13 @@ import {
 	ImgElementType,
 	ImgOffsetStrategy,
 	RendererOptions,
-	SpriteOptions,
+	SpriteSetOptions,
 	updateOptionsSearchParams,
 } from './options.js';
-import { Sprites } from './sprites.js';
+import { SpriteSets } from './sprite-sets.js';
+import {ImageRenderModule} from "../renderer-modules/image-render-module.js";
 
-export function initialize(options, reinitialize, rendererModule) {
+export function initialize(options, initializeRenderModule, renderModule) {
 	const gui = new dat.GUI();
 
 	gui.width = 300;
@@ -23,21 +24,23 @@ export function initialize(options, reinitialize, rendererModule) {
 
 			folders[options.renderer].show();
 
-			reinitialize();
+			initializeRenderModule();
 			updateOptionsSearchParams();
 		});
 
-	gui.add(options, 'sprites', Object.values(SpriteOptions))
+	gui.add(options, 'spriteSet', Object.values(SpriteSetOptions))
 		.name('Sprites')
 		.onChange(() => {
-			rendererModule.updateSprites();
+			renderModule.spriteSet = SpriteSets[options.spriteSet];
+			renderModule.onSpriteSetUpdated();
 			updateOptionsSearchParams();
 		});
 
-	gui.add(options, 'animated')
+	gui.add(options, 'isAnimatedByDefault')
 		.name('Animated by default')
 		.onChange(() => {
-			rendererModule.updateSprites();
+			renderModule.isAnimatedByDefault = options.isAnimatedByDefault;
+			renderModule.onSpriteSetUpdated();
 			updateOptionsSearchParams();
 		});
 
@@ -45,7 +48,8 @@ export function initialize(options, reinitialize, rendererModule) {
 		.name('Count')
 		.step(1)
 		.onChange(() => {
-			rendererModule.updateCount();
+			renderModule.count = options.count;
+			renderModule.onCountUpdated();
 			updateOptionsSearchParams();
 		});
 
@@ -53,6 +57,7 @@ export function initialize(options, reinitialize, rendererModule) {
 		.name('Animation Changes Per Frame')
 		.step(1)
 		.onChange(() => {
+			renderModule.animationChangesPerFrame = options.animationChangesPerFrame;
 			updateOptionsSearchParams();
 		});
 
@@ -60,6 +65,7 @@ export function initialize(options, reinitialize, rendererModule) {
 		.name('Variation Changes Per Frame')
 		.step(1)
 		.onChange(() => {
+			renderModule.variationChangesPerFrame = options.variationChangesPerFrame;
 			updateOptionsSearchParams();
 		});
 
@@ -70,21 +76,30 @@ export function initialize(options, reinitialize, rendererModule) {
 		.add(options.img, 'offsetStrategy', Object.values(ImgOffsetStrategy))
 		.name('Panning')
 		.onChange(() => {
-			rendererModule.updateCamera();
+			if (renderModule instanceof ImageRenderModule) {
+				renderModule.offsetStrategy = options.img.offsetStrategy;
+				renderModule.onCameraUpdated();
+			}
 			updateOptionsSearchParams();
 		});
 	folders[RendererOptions.IMAGE]
-		.add(options.img, 'uniqueImages')
+		.add(options.img, 'useUniqueImages')
 		.name('Unique Images')
 		.onChange(() => {
-			rendererModule.updateCount();
+			if (renderModule instanceof ImageRenderModule) {
+				renderModule.useUniqueImages = options.img.useUniqueImages;
+				renderModule.onSpriteSetUpdated();
+			}
 			updateOptionsSearchParams();
 		});
 	folders[RendererOptions.IMAGE]
 		.add(options.img, 'elementType', Object.values(ImgElementType))
 		.name('Element Type')
 		.onChange(() => {
-			rendererModule.updateCount();
+			if (renderModule instanceof ImageRenderModule) {
+				renderModule.elementType = options.img.elementType;
+				renderModule.onSpriteSetUpdated();
+			}
 			updateOptionsSearchParams();
 		});
 
