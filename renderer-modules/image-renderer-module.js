@@ -8,6 +8,7 @@ import { getRowsAndColumns } from '../utils/get-rows-and-columns.js';
 import { camera } from '../utils/camera.js';
 import { Sprites } from '../utils/sprites.js';
 import { randomChoice } from '../utils/random.js';
+import {size} from "../utils/size.js";
 
 export class ImageRendererModule extends RendererModule {
 	#fellas = [];
@@ -69,6 +70,11 @@ export class ImageRendererModule extends RendererModule {
 	}
 
 	updateSize() {
+		if (size.x === 0 || size.y === 0) {
+			return;
+		}
+
+		console.debug('ImageRendererModule.updateSize', size);
 	}
 
 	updateSprites() {
