@@ -1,20 +1,22 @@
-import { clamp } from "./clamp.js";
+import { clamp } from '../utils/clamp.js';
 
-export function initialize(element, camera, handlers) {
-	element.addEventListener('mousedown', () => {
-		camera.dragging = true;
+export function setupInputHandlers(state, containerElement) {
+	const camera = state.camera;
+
+	containerElement.addEventListener('mousedown', () => {
+		camera.isDragging = true;
 	});
 
-	element.addEventListener('mouseup', () => {
-		camera.dragging = false;
+	containerElement.addEventListener('mouseup', () => {
+		camera.isDragging = false;
 	});
 
-	element.addEventListener('mouseleave', () => {
-		camera.dragging = false;
+	containerElement.addEventListener('mouseleave', () => {
+		camera.isDragging = false;
 	});
 
-	element.addEventListener('mousemove', (e) => {
-		if (!camera.dragging) {
+	containerElement.addEventListener('mousemove', (e) => {
+		if (!camera.isDragging) {
 			return;
 		}
 
@@ -42,11 +44,9 @@ export function initialize(element, camera, handlers) {
 			x: camera.offset.x + deltaWorldPos.x,
 			y: camera.offset.y + deltaWorldPos.y,
 		};
-
-		handlers.onOffsetUpdated?.();
 	});
 
-	element.addEventListener('wheel', (e) => {
+	containerElement.addEventListener('wheel', (e) => {
 		e.preventDefault();
 
 		const delta = e.deltaY * camera.zoomSensitivity;
@@ -79,9 +79,6 @@ export function initialize(element, camera, handlers) {
 
 		camera.scale = newScale;
 		camera.offset = newOffset;
-
-		handlers.onScaleUpdated?.();
-		handlers.onOffsetUpdated?.();
 	});
 }
 
