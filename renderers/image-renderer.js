@@ -55,6 +55,8 @@ export class ImageRenderer extends AbstractRenderer {
 		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
 		this.#state.observe('options.count', this.#updateCount.bind(this));
 		this.#state.observe('camera.offset', this.#updateTransform.bind(this));
+		this.#state.observe('options.img.useUniqueImages', this.#setupFellas.bind(this));
+		this.#state.observe('options.img.elementType', this.#setupFellas.bind(this));
 	}
 
 	#updateSpriteSet() {
@@ -75,21 +77,15 @@ export class ImageRenderer extends AbstractRenderer {
 	}
 
 	#setupFellas() {
+		this.#fellas.forEach(this.#destroyFella.bind(this));
+		this.#fellas = [];
+
 		const count = this.#state.options.count;
 
-		if (this.#fellas.length > count) {
-			const fellasToRemove = this.#fellas.length - count;
-			const removedFellas = this.#fellas.splice(0, fellasToRemove);
-			removedFellas.forEach(this.#destroyFella);
-		}
-
-		if (this.#fellas.length < count) {
-			const fellasToAdd = count - this.#fellas.length;
-			for (let i = 0; i < fellasToAdd; i++) {
-				const fella = this.#createFella();
-				this.#fellasElement.appendChild(fella.element);
-				this.#fellas.push(fella);
-			}
+		for (let i = 0; i < count; i++) {
+			const fella = this.#createFella();
+			this.#fellasElement.appendChild(fella.element);
+			this.#fellas.push(fella);
 		}
 	}
 
