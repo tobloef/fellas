@@ -12,6 +12,7 @@
   * See here for an example: https://share.cleanshot.com/6bLnN3mD
   * You can see how the red and blue sections of the FPS graph alternates. So it's not actually a stable 60fps, it's alternating between a very high and very low FPS (120 and 10, for example).
   * Notice also how the CPU usage is at 0%. I imagine this is because the browser is mostly using the GPU at that point, as opposed to when we're padding.
+* "Forgetting" to do clearReact properly when doing diff drawing is quite funny.
 
 ## Rules/Requirements
 

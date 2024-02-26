@@ -14,6 +14,7 @@ export class CanvasRenderer extends AbstractRenderer {
 	#containerElement = null;
 	#canvasesElement = null;
 	#animationFrame = null;
+	#needsGlobalRedraw = true;
 
 	async initialize(state, containerElement) {
 		this.#state = state;
@@ -23,6 +24,10 @@ export class CanvasRenderer extends AbstractRenderer {
 
 		this.#setupCanvas();
 		await this.#updateSpriteSet();
+		this.#updateScreenSize();
+		this.#updateOffset();
+		await this.#setupImages();
+		this.#setupFellas();
 
 		if (this.#state.options.canvas.useWorker) {
 			this.#setupWorkers();
@@ -38,12 +43,34 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	#setupStateObservers() {
-		this.#state.observe('screenSize', this.#updateScreenSize.bind(this));
-		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
-		this.#state.observe('options.isAnimatedByDefault', this.#setupFellas.bind(this));
-		this.#state.observe('options.count', this.#setupFellas.bind(this));
-		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
-		this.#state.observe('options.canvas.useCssTransform', this.#setupCanvas.bind(this));
+		this.#state.observe('screenSize', () => {
+			this.#updateScreenSize();
+		});
+
+		this.#state.observe('options.spriteSet', async () => {
+			await this.#updateSpriteSet();
+			await this.#setupImages();
+			this.#setupFellas();
+		});
+
+		this.#state.observe('options.isAnimatedByDefault', () => {
+			this.#setupFellas();
+		});
+
+		this.#state.observe('options.count', () => {
+			this.#updateScreenSize();
+			this.#setupFellas();
+		});
+
+		this.#state.observe('camera.offset', () => {
+			this.#updateOffset();
+		});
+
+		this.#state.observe('options.canvas.useCssTransform', () => {
+			this.#setupCanvas();
+			this.#updateScreenSize();
+			this.#updateOffset();
+		});
 	}
 
 	#setupCanvas() {
@@ -64,8 +91,7 @@ export class CanvasRenderer extends AbstractRenderer {
 			this.#containerElement.appendChild(canvas);
 		}
 
-		this.#updateScreenSize();
-		this.#updateOffset();
+		this.#needsGlobalRedraw = true;
 	}
 
 	async #updateSpriteSet() {
@@ -76,8 +102,6 @@ export class CanvasRenderer extends AbstractRenderer {
 		}
 
 		this.#spriteSet = spriteSet;
-		await this.#setupImages();
-		this.#setupFellas();
 	}
 
 	async #setupImages() {
@@ -105,25 +129,12 @@ export class CanvasRenderer extends AbstractRenderer {
 		}
 	}
 
-	#createFella() {
-		const options = this.#state.options;
-
-		const fella = {
-			isAnimated: options.isAnimatedByDefault,
-			variation: randomChoice(this.#spriteSet.variations),
-		};
-
-		if (!options.canvas.useWorker) {
-			fella.image = this.#images[fella.variation];
-		}
-
-		return fella;
-	}
-
 	#updateOffset() {
 		if (!this.#state.options.canvas.useCssTransform) {
+			this.#needsGlobalRedraw = true;
 			return;
 		}
+
 		const { offset, scale } = this.#state.camera;
 		const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
 		this.#canvasesElement.style.transform = transform;
@@ -152,6 +163,22 @@ export class CanvasRenderer extends AbstractRenderer {
 		this.#ctx.imageSmoothingEnabled = false;
 	}
 
+	#createFella() {
+		const options = this.#state.options;
+
+		const fella = {
+			isAnimated: options.isAnimatedByDefault,
+			variation: randomChoice(this.#spriteSet.variations),
+			needsRedraw: true,
+		};
+
+		if (!options.canvas.useWorker) {
+			fella.image = this.#images[fella.variation];
+		}
+
+		return fella;
+	}
+
 	#setupWorkers() {
 		this.#worker = new Worker('renderers/canvas/worker.js', { type: 'module' });
 		// TODO
@@ -169,17 +196,22 @@ export class CanvasRenderer extends AbstractRenderer {
 		// TODO
 	}
 
-	#loop() {
-		this.#swapFellaVariations();
-		this.#swapFellaAnimations();
-
+	#draw() {
 		if (this.#state.options.canvas.useWorker) {
 			this.#updateWorkers();
 		}
 
 		if (!this.#state.options.canvas.useWorker) {
-			draw(this.#ctx, this.#state, this.#fellas);
+			draw(this.#ctx, this.#state, this.#fellas, this.#needsGlobalRedraw);
+			this.#needsGlobalRedraw = false;
 		}
+	}
+
+	#loop() {
+		this.#swapFellaVariations();
+		this.#swapFellaAnimations();
+
+		this.#draw();
 
 		this.#animationFrame = requestAnimationFrame(this.#loop.bind(this));
 	}

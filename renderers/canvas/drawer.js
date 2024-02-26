@@ -1,10 +1,10 @@
 import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 
-export function draw(ctx, state, fellas) {
+export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	const { options, camera } = state;
 
-	if (!options.canvas.drawDeltas) {
+	if (!options.canvas.drawDeltas || needsGlobalRedraw) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	}
 
@@ -23,7 +23,7 @@ export function draw(ctx, state, fellas) {
 	for (let i = 0; i < fellas.length; i++) {
 		const fella = fellas[i];
 
-		if (options.canvas.drawDeltas && !fella.needsRedraw) {
+		if (options.canvas.drawDeltas && !fella.needsRedraw && !needsGlobalRedraw) {
 			continue;
 		}
 
