@@ -1,11 +1,10 @@
 import { DEFAULT_OPTIONS } from './options.js';
 import { DEFAULT_CAMERA } from './camera.js';
-import { DEFAULT_WORLD } from './world.js';
 
 const DEFAULT_STATE = {
 	options: DEFAULT_OPTIONS,
 	camera: DEFAULT_CAMERA,
-	world: DEFAULT_WORLD,
+	screenSize: { width: 0, height: 0 },
 };
 
 const UNOBSERVED_PROPS = [];

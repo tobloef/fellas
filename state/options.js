@@ -31,7 +31,13 @@ export const DEFAULT_OPTIONS = {
 		useUniqueImages: false,
 		elementType: ImgElementType.IMG,
 	},
-	canvas: {},
+	canvas: {
+		useCssTransform: false,
+		drawDeltas: false,
+		useWorker: false,
+		useMultipleCanvases: false,
+		useMultipleWorkers: false,
+	},
 	webgl: {},
 	webgpu: {},
 };

@@ -1,11 +1,11 @@
-import { AbstractRenderer } from './abstract-renderer.js';
-import { randomChoice } from '../utils/random.js';
-import { SpriteSets } from '../state/sprite-sets.js';
+import { AbstractRenderer } from '../abstract-renderer.js';
+import { randomChoice } from '../../utils/random.js';
+import { SpriteSets } from '../../state/sprite-sets.js';
 import {
 	ImgElementType,
 	ImgOffsetStrategy,
-} from '../state/options.js';
-import { getRowsAndColumns } from '../utils/get-rows-and-columns.js';
+} from '../../state/options.js';
+import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
 
 export class ImageRenderer extends AbstractRenderer {
 	#state = null;
@@ -13,9 +13,7 @@ export class ImageRenderer extends AbstractRenderer {
 	#fellasElement = null;
 	#spriteSet = null;
 
-	constructor(state, containerElement) {
-		super();
-
+	async initialize(state, containerElement) {
 		this.#state = state;
 
 		this.#fellasElement = this.#createFellasElement();
@@ -23,15 +21,11 @@ export class ImageRenderer extends AbstractRenderer {
 
 		this.#setupStateObservers();
 		this.#updateSpriteSet();
-		this.#updateTransform();
+		this.#updateOffset();
 		this.#loop();
 	}
 
-	static create(state, containerElement) {
-		return new ImageRenderer(state, containerElement);
-	}
-
-	destroy() {
+	async destroy() {
 		this.#fellasElement.remove();
 		this.#fellasElement = null;
 	}
@@ -39,14 +33,7 @@ export class ImageRenderer extends AbstractRenderer {
 	#createFellasElement() {
 		const fellasElement = document.createElement('div');
 
-		fellasElement.style.overflow = 'hidden';
-		fellasElement.style.position = 'absolute';
-		fellasElement.style.width = '100%';
-		fellasElement.style.height = '100%';
-		fellasElement.style.transformOrigin = 'top left';
-		fellasElement.style.imageRendering = 'pixelated';
-		fellasElement.style.userSelect = 'none';
-		fellasElement.style.fontSize = '0';
+		fellasElement.className = 'fellas';
 
 		return fellasElement;
 	}
@@ -55,7 +42,7 @@ export class ImageRenderer extends AbstractRenderer {
 		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
 		this.#state.observe('options.isAnimatedByDefault', this.#setupFellas.bind(this));
 		this.#state.observe('options.count', this.#updateCount.bind(this));
-		this.#state.observe('camera.offset', this.#updateTransform.bind(this));
+		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
 		this.#state.observe('options.img.useUniqueImages', this.#setupFellas.bind(this));
 		this.#state.observe('options.img.elementType', this.#setupFellas.bind(this));
 	}
@@ -173,7 +160,7 @@ export class ImageRenderer extends AbstractRenderer {
 		}
 	}
 
-	#updateTransform() {
+	#updateOffset() {
 		const options = this.#state.options;
 		const offset = this.#state.camera.offset;
 		const scale = this.#state.camera.scale;

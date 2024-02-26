@@ -1,7 +1,6 @@
 export function setupSizeObserver(state, containerElement) {
 	observeSize(containerElement, (width, height) => {
-		state.world.width = width;
-		state.world.height = height;
+		state.screenSize = { width, height };
 	});
 }
 

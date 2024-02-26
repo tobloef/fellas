@@ -18,4 +18,4 @@ setStateFromSearchParams(state);
 setupDebugGui(state);
 setupSizeObserver(state, containerElement);
 setupInputHandlers(state, containerElement);
-setupRenderers(state, containerElement);
+await setupRenderers(state, containerElement);

@@ -76,6 +76,21 @@ export function setupDebugGui(state) {
 	folders[RendererOptions.CANVAS] = gui.addFolder('Canvas');
 	folders[RendererOptions.CANVAS].open();
 	folders[RendererOptions.CANVAS].hide();
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'useCssTransform')
+		.name('Pan with CSS');
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'drawDeltas')
+		.name('Only draw changes');
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'useWorker')
+		.name('Use Web Worker');
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'useMultipleCanvases')
+		.name('Multiple canvases');
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'useMultipleWorkers')
+		.name('Multiple workers');
 
 	folders[RendererOptions.WEBGL] = gui.addFolder('WebGL');
 	folders[RendererOptions.WEBGL].open();
