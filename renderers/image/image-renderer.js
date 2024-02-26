@@ -11,13 +11,16 @@ export class ImageRenderer extends AbstractRenderer {
 	#state = null;
 	#fellas = [];
 	#fellasElement = null;
+	#containerElement = null;
 	#spriteSet = null;
+	#animationFrame = null;
 
 	async initialize(state, containerElement) {
 		this.#state = state;
+		this.#containerElement = containerElement;
 
 		this.#fellasElement = this.#createFellasElement();
-		containerElement.appendChild(this.#fellasElement);
+		this.#containerElement.appendChild(this.#fellasElement);
 
 		this.#setupStateObservers();
 		this.#updateSpriteSet();
@@ -26,14 +29,14 @@ export class ImageRenderer extends AbstractRenderer {
 	}
 
 	async destroy() {
-		this.#fellasElement.remove();
-		this.#fellasElement = null;
+		cancelAnimationFrame(this.#animationFrame);
+		this.#containerElement.replaceChildren()
 	}
 
 	#createFellasElement() {
 		const fellasElement = document.createElement('div');
 
-		fellasElement.className = 'fellas';
+		fellasElement.className = 'transform-wrapper';
 
 		return fellasElement;
 	}
@@ -137,7 +140,7 @@ export class ImageRenderer extends AbstractRenderer {
 	#loop() {
 		this.#swapFellaVariations();
 		this.#swapFellaAnimations();
-		requestAnimationFrame(this.#loop.bind(this));
+		this.#animationFrame = requestAnimationFrame(this.#loop.bind(this));
 	}
 
 	#swapFellaVariations() {

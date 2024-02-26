@@ -7,7 +7,16 @@ const STATE_TO_SEARCH_PARAMS = {
 		variationChangesPerFrame: integer,
 		animationChangesPerFrame: integer,
 		img: {
-			offsetStrategy: string, useUniqueImages: boolean, elementType: string,
+			offsetStrategy: string,
+			useUniqueImages: boolean,
+			elementType: string,
+		},
+		canvas: {
+			useCssTransform: boolean,
+			drawDeltas: boolean,
+			useWorker: boolean,
+			useMultipleCanvases: boolean,
+			useMultipleWorkers: boolean,
 		},
 	},
 };

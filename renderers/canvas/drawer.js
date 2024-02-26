@@ -27,8 +27,11 @@ export function draw(ctx, state, fellas) {
 			continue;
 		}
 
-		let x = (i % columns) * width;
-		let y = Math.floor(i / columns) * height;
+		let x = (i % columns);
+		let y = Math.floor(i / columns);
+
+		x *= width;
+		y *= height;
 
 		if (!options.canvas.useCssTransform) {
 			x += camera.offset.x * camera.scale;

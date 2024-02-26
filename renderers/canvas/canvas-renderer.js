@@ -2,6 +2,7 @@ import { AbstractRenderer } from '../abstract-renderer.js';
 import { draw } from './drawer.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 import { randomChoice } from '../../utils/random.js';
+import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
 
 export class CanvasRenderer extends AbstractRenderer {
 	#state = null;
@@ -10,41 +11,61 @@ export class CanvasRenderer extends AbstractRenderer {
 	#worker = null;
 	#spriteSet = null;
 	#images = {};
+	#containerElement = null;
+	#canvasesElement = null;
+	#animationFrame = null;
 
 	async initialize(state, containerElement) {
 		this.#state = state;
-
-		const canvas = document.createElement('canvas');
-		canvas.style.width = '100%';
-		canvas.style.height = '100%';
-		canvas.style.imageRendering = 'pixelated';
-		containerElement.appendChild(canvas);
-
-		this.#ctx = canvas.getContext('2d', { alpha: false, antialias: false });
-		this.#ctx.imageSmoothingEnabled = false;
-
-		await this.#updateSpriteSet();
+		this.#containerElement = containerElement;
 
 		this.#setupStateObservers();
+
+		this.#setupCanvas();
+		await this.#updateSpriteSet();
+
 		if (this.#state.options.canvas.useWorker) {
 			this.#setupWorkers();
 		}
-		this.#updateScreenSize();
 
 		this.#loop();
 	}
 
 	destroy() {
+		cancelAnimationFrame(this.#animationFrame);
 		this.#ctx.canvas.remove();
 		this.#ctx = null;
 	}
 
 	#setupStateObservers() {
-		this.#state.observe('world.screenSize', this.#updateScreenSize.bind(this));
+		this.#state.observe('screenSize', this.#updateScreenSize.bind(this));
 		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
 		this.#state.observe('options.isAnimatedByDefault', this.#setupFellas.bind(this));
 		this.#state.observe('options.count', this.#setupFellas.bind(this));
 		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
+		this.#state.observe('options.canvas.useCssTransform', this.#setupCanvas.bind(this));
+	}
+
+	#setupCanvas() {
+		this.#containerElement.replaceChildren();
+
+		const canvas = document.createElement('canvas');
+		canvas.style.imageRendering = 'pixelated';
+
+		this.#ctx = canvas.getContext('2d', { alpha: false, antialias: false });
+		this.#ctx.imageSmoothingEnabled = false;
+
+		if (this.#state.options.canvas.useCssTransform) {
+			this.#canvasesElement = document.createElement('div');
+			this.#canvasesElement.className = 'transform-wrapper';
+			this.#containerElement.appendChild(this.#canvasesElement);
+			this.#canvasesElement.appendChild(canvas);
+		} else {
+			this.#containerElement.appendChild(canvas);
+		}
+
+		this.#updateScreenSize();
+		this.#updateOffset();
 	}
 
 	async #updateSpriteSet() {
@@ -100,12 +121,34 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	#updateOffset() {
-
+		if (!this.#state.options.canvas.useCssTransform) {
+			return;
+		}
+		const { offset, scale } = this.#state.camera;
+		const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
+		this.#canvasesElement.style.transform = transform;
 	}
 
 	#updateScreenSize() {
-		this.#ctx.canvas.width = this.#state.screenSize.width;
-		this.#ctx.canvas.height = this.#state.screenSize.height;
+		let width;
+		let height;
+
+		if (this.#state.options.canvas.useCssTransform) {
+			const { columns, rowsWithOverflow } = getRowsAndColumns(this.#state.options.count);
+			width = columns * this.#spriteSet.width;
+			height = rowsWithOverflow * this.#spriteSet.height;
+			this.#ctx.canvas.style.width = `${width}px`;
+			this.#ctx.canvas.style.height = `${height}px`;
+		} else {
+			width = this.#state.screenSize.width;
+			height = this.#state.screenSize.height;
+			this.#ctx.canvas.style.width = `100%`;
+			this.#ctx.canvas.style.height = `100%`;
+		}
+
+		this.#ctx.canvas.width = width;
+		this.#ctx.canvas.height = height;
+
 		this.#ctx.imageSmoothingEnabled = false;
 	}
 
@@ -138,7 +181,7 @@ export class CanvasRenderer extends AbstractRenderer {
 			draw(this.#ctx, this.#state, this.#fellas);
 		}
 
-		requestAnimationFrame(this.#loop.bind(this));
+		this.#animationFrame = requestAnimationFrame(this.#loop.bind(this));
 	}
 
 	async #getBitmap(src) {
