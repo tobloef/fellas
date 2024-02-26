@@ -53,6 +53,7 @@ export class ImageRenderer extends AbstractRenderer {
 
 	#setupStateObservers() {
 		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
+		this.#state.observe('options.isAnimatedByDefault', this.#setupFellas.bind(this));
 		this.#state.observe('options.count', this.#updateCount.bind(this));
 		this.#state.observe('camera.offset', this.#updateTransform.bind(this));
 		this.#state.observe('options.img.useUniqueImages', this.#setupFellas.bind(this));

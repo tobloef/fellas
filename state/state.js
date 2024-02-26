@@ -57,7 +57,7 @@ function getRecursivelyObservableProxyHandler(
 			const path = parentPath ? `${parentPath}.${key}` : key;
 
 			const isObservable = !unobservedProps.includes(path);
-			if (isObservable) {
+			if (isObservable && oldValue !== newValue) {
 				eventTarget.dispatchEvent(
 					new CustomEvent(path, { detail: { oldValue, newValue } }),
 				);
