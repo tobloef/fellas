@@ -53,8 +53,9 @@
 
 ## TODO
 
-* Zoom-pan with another canvas
-* Sprite map
+* Zoom-pan by rendering canvas to destination canvas
+* Worker
 * Tile multiple canvases
-* Multiple canvases in different threads?
+* Multiple canvases in different workers
+* Sprite map animations with image render
 * Render animated fellas on the canvas
