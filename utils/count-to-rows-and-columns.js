@@ -1,4 +1,4 @@
-export function getRowsAndColumns(count) {
+export function countToRowsAndColumns(count) {
 	const columns = Math.ceil(Math.sqrt(count));
 	const rows = Math.floor(count / columns);
 	const overflowAmount = (count - columns * rows);

@@ -2,7 +2,7 @@ import { AbstractRenderer } from '../abstract-renderer.js';
 import { draw } from './drawer.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 import { randomChoice } from '../../utils/random.js';
-import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
+import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 
 export class CanvasRenderer extends AbstractRenderer {
 	#state = null;
@@ -145,7 +145,7 @@ export class CanvasRenderer extends AbstractRenderer {
 		let height;
 
 		if (this.#state.options.canvas.useCssTransform) {
-			const { columns, rowsWithOverflow } = getRowsAndColumns(this.#state.options.count);
+			const { columns, rowsWithOverflow } = countToRowsAndColumns(this.#state.options.count);
 			width = columns * this.#spriteSet.width;
 			height = rowsWithOverflow * this.#spriteSet.height;
 			this.#ctx.canvas.style.width = `${width}px`;

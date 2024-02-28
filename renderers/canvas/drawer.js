@@ -1,4 +1,4 @@
-import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
+import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 
 export function draw(ctx, state, fellas, needsGlobalRedraw) {
@@ -18,7 +18,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 		height *= camera.scale;
 	}
 
-	let { columns } = getRowsAndColumns(options.count);
+	let { columns } = countToRowsAndColumns(options.count);
 
 	for (let i = 0; i < fellas.length; i++) {
 		const fella = fellas[i];

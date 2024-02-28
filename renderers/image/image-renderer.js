@@ -5,7 +5,7 @@ import {
 	ImgElementType,
 	ImgOffsetStrategy,
 } from '../../state/options.js';
-import { getRowsAndColumns } from '../../utils/get-rows-and-columns.js';
+import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 
 export class ImageRenderer extends AbstractRenderer {
 	#state = null;
@@ -61,7 +61,7 @@ export class ImageRenderer extends AbstractRenderer {
 	}
 
 	#updateCount() {
-		const { rowsWithOverflow, columns } = getRowsAndColumns(this.#state.options.count);
+		const { rowsWithOverflow, columns } = countToRowsAndColumns(this.#state.options.count);
 		this.#fellasElement.style.width = `${columns * this.#spriteSet.width}px`;
 		this.#fellasElement.style.height = `${rowsWithOverflow * this.#spriteSet.height}px`;
 		this.#setupFellas();
