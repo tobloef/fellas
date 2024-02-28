@@ -10,4 +10,13 @@ export const SpriteSets = {
 			animated: (variation) => `assets/froggy/froggy_${variation}.gif`,
 		},
 	},
+	[SpriteSetOptions.TEST]: {
+		width: 250,
+		height: 250,
+		variations: ['8', '12.5', '16.66', '25', '33.33', '50', '60', '100'],
+		assets: {
+			still: (variation) => `assets/test_gifs/${variation}fps.png`,
+			animated: (variation) => `assets/test_gifs/${variation}fps.gif`,
+		},
+	}
 };

@@ -7,6 +7,7 @@ export const RendererOptions = {
 
 export const SpriteSetOptions = {
 	FROG: 'Frog (64x64)',
+	TEST: 'Test (250x250)',
 };
 
 export const ImgOffsetStrategy = {
