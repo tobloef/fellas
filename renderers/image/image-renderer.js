@@ -146,7 +146,7 @@ export class ImageRenderer extends AbstractRenderer {
 	#swapFellaVariations() {
 		const options = this.#state.options;
 
-		for (let i = 0; i < options.img.variationChangesPerFrame; i++) {
+		for (let i = 0; i < options.variationChangesPerFrame; i++) {
 			const fella = randomChoice(this.#fellas);
 			fella.variation = randomChoice(this.#spriteSet.variations);
 			this.#updateFellaSrc(fella);
@@ -156,7 +156,7 @@ export class ImageRenderer extends AbstractRenderer {
 	#swapFellaAnimations() {
 		const options = this.#state.options;
 
-		for (let i = 0; i < options.img.animationChangesPerFrame; i++) {
+		for (let i = 0; i < options.animationChangesPerFrame; i++) {
 			const fella = randomChoice(this.#fellas);
 			fella.isAnimated = !fella.isAnimated;
 			this.#updateFellaSrc(fella);

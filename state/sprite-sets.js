@@ -15,8 +15,8 @@ export const SpriteSets = {
 		height: 250,
 		variations: ['8', '12.5', '16.66', '25', '33.33', '50', '60', '100'],
 		assets: {
-			still: (variation) => `assets/test_gifs/${variation}fps.png`,
-			animated: (variation) => `assets/test_gifs/${variation}fps.gif`,
+			still: (variation) => `assets/test-gifs/${variation}fps.png`,
+			animated: (variation) => `assets/test-gifs/${variation}fps.gif`,
 		},
 	}
 };
