@@ -34,7 +34,8 @@ export const DEFAULT_OPTIONS = {
 	},
 	canvas: {
 		useCssTransform: false,
-		drawDeltas: false,
+		onlyDrawChanges: false,
+		useBufferCanvas: false,
 		useWorker: false,
 		useMultipleCanvases: false,
 		useMultipleWorkers: false,

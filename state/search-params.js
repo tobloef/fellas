@@ -13,7 +13,8 @@ const STATE_TO_SEARCH_PARAMS = {
 		},
 		canvas: {
 			useCssTransform: boolean,
-			drawDeltas: boolean,
+			onlyDrawChanges: boolean,
+			useBufferCanvas: boolean,
 			useWorker: boolean,
 			useMultipleCanvases: boolean,
 			useMultipleWorkers: boolean,

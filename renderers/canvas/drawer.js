@@ -4,7 +4,7 @@ import { SpriteSets } from '../../state/sprite-sets.js';
 export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	const { options, camera } = state;
 
-	if (!options.canvas.drawDeltas || needsGlobalRedraw) {
+	if (!options.canvas.onlyDrawChanges || needsGlobalRedraw) {
 		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 	}
 
@@ -13,7 +13,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	let width = spriteSet.width;
 	let height = spriteSet.height;
 
-	if (!options.canvas.useCssTransform) {
+	if (!options.canvas.useCssTransform && !options.canvas.useBufferCanvas) {
 		width *= camera.scale;
 		height *= camera.scale;
 	}
@@ -23,7 +23,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	for (let i = 0; i < fellas.length; i++) {
 		const fella = fellas[i];
 
-		if (options.canvas.drawDeltas && !fella.needsRedraw && !needsGlobalRedraw) {
+		if (options.canvas.onlyDrawChanges && !fella.needsRedraw && !needsGlobalRedraw) {
 			continue;
 		}
 
@@ -33,12 +33,12 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 		x *= width;
 		y *= height;
 
-		if (!options.canvas.useCssTransform) {
+		if (!options.canvas.useCssTransform && !options.canvas.useBufferCanvas) {
 			x += camera.offset.x * camera.scale;
 			y += camera.offset.y * camera.scale;
 		}
 
-		if (options.canvas.drawDeltas) {
+		if (options.canvas.onlyDrawChanges) {
 			ctx.clearRect(x, y, width, height);
 		}
 

@@ -15,6 +15,8 @@ export class CanvasRenderer extends AbstractRenderer {
 	#canvasesElement = null;
 	#animationFrame = null;
 	#needsGlobalRedraw = true;
+	#bufferCanvas = null;
+	#bufferCtx = null;
 
 	async initialize(state, containerElement) {
 		this.#state = state;
@@ -39,7 +41,6 @@ export class CanvasRenderer extends AbstractRenderer {
 	destroy() {
 		cancelAnimationFrame(this.#animationFrame);
 		this.#ctx.canvas.remove();
-		this.#ctx = null;
 	}
 
 	#setupStateObservers() {
@@ -71,6 +72,12 @@ export class CanvasRenderer extends AbstractRenderer {
 			this.#updateScreenSize();
 			this.#updateOffset();
 		});
+
+		this.#state.observe('options.canvas.useBufferCanvas', () => {
+			this.#setupCanvas();
+			this.#updateScreenSize();
+			this.#updateOffset();
+		});
 	}
 
 	#setupCanvas() {
@@ -92,6 +99,12 @@ export class CanvasRenderer extends AbstractRenderer {
 		}
 
 		this.#needsGlobalRedraw = true;
+
+		if (this.#state.options.canvas.useBufferCanvas) {
+			this.#bufferCanvas = new OffscreenCanvas(0, 0);
+			this.#bufferCtx = this.#bufferCanvas.getContext('2d', { alpha: false, antialias: false });
+			this.#bufferCtx.imageSmoothingEnabled = false;
+		}
 	}
 
 	async #updateSpriteSet() {
@@ -130,37 +143,44 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	#updateOffset() {
-		if (!this.#state.options.canvas.useCssTransform) {
-			this.#needsGlobalRedraw = true;
-			return;
+		if (this.#state.options.canvas.useCssTransform) {
+			const { offset, scale } = this.#state.camera;
+			const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
+			this.#canvasesElement.style.transform = transform;
 		}
 
-		const { offset, scale } = this.#state.camera;
-		const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
-		this.#canvasesElement.style.transform = transform;
+		if (!this.#state.options.canvas.useBufferCanvas && !this.#state.options.canvas.useCssTransform) {
+			this.#needsGlobalRedraw = true;
+		}
 	}
 
 	#updateScreenSize() {
-		let width;
-		let height;
+		const { columns, rowsWithOverflow } = countToRowsAndColumns(this.#state.options.count);
+		const gridWidth = columns * this.#spriteSet.width;
+		const gridHeight = rowsWithOverflow * this.#spriteSet.height;
 
-		if (this.#state.options.canvas.useCssTransform) {
-			const { columns, rowsWithOverflow } = countToRowsAndColumns(this.#state.options.count);
-			width = columns * this.#spriteSet.width;
-			height = rowsWithOverflow * this.#spriteSet.height;
-			this.#ctx.canvas.style.width = `${width}px`;
-			this.#ctx.canvas.style.height = `${height}px`;
+		const screenWidth = this.#state.screenSize.width;
+		const screenHeight = this.#state.screenSize.height;
+
+		const { useCssTransform } = this.#state.options.canvas;
+
+		if (useCssTransform) {
+			this.#ctx.canvas.style.width = `${gridWidth}px`;
+			this.#ctx.canvas.style.height = `${gridHeight}px`;
 		} else {
-			width = this.#state.screenSize.width;
-			height = this.#state.screenSize.height;
 			this.#ctx.canvas.style.width = `100%`;
 			this.#ctx.canvas.style.height = `100%`;
 		}
 
-		this.#ctx.canvas.width = width;
-		this.#ctx.canvas.height = height;
-
+		this.#ctx.canvas.width = useCssTransform ? gridWidth : screenWidth;
+		this.#ctx.canvas.height = useCssTransform ? gridHeight : screenHeight;
 		this.#ctx.imageSmoothingEnabled = false;
+
+		if (this.#state.options.canvas.useBufferCanvas) {
+			this.#bufferCanvas.width = gridWidth;
+			this.#bufferCanvas.height = gridHeight;
+			this.#bufferCtx.imageSmoothingEnabled = false;
+		}
 	}
 
 	#createFella() {
@@ -202,7 +222,19 @@ export class CanvasRenderer extends AbstractRenderer {
 		}
 
 		if (!this.#state.options.canvas.useWorker) {
-			draw(this.#ctx, this.#state, this.#fellas, this.#needsGlobalRedraw);
+			if (this.#state.options.canvas.useBufferCanvas) {
+				draw(this.#bufferCtx, this.#state, this.#fellas, this.#needsGlobalRedraw);
+				const offset = this.#state.camera.offset;
+				const scale = this.#state.camera.scale;
+				const x = offset.x * scale;
+				const y = offset.y * scale;
+				const w = this.#bufferCtx.canvas.width * scale;
+				const h = this.#bufferCtx.canvas.height * scale;
+				this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
+				this.#ctx.drawImage(this.#bufferCanvas, x, y, w, h);
+			} else {
+				draw(this.#ctx, this.#state, this.#fellas, this.#needsGlobalRedraw);
+			}
 			this.#needsGlobalRedraw = false;
 		}
 	}

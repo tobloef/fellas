@@ -14,6 +14,8 @@
   * Notice also how the CPU usage is at 0%. I imagine this is because the browser is mostly using the GPU at that point, as opposed to when we're padding.
 * "Forgetting" to do clearReact properly when doing diff drawing is quite funny.
 * One thing to dislike about the "CSS transform" trick is that it's not very reusable. Like, it works great for this one case, but in anything more complex, it adds a lot of complexity.
+* Buffer canvas as an alternative to CSS transform is great. The performance is on par and you keep it in the canvas.
+  * In fact, I'm seeing a performance gain even when not using delta drawing. Perhaps due to not scaling?
 
 ## Rules/Requirements
 
@@ -54,7 +56,6 @@
 
 ## TODO
 
-* Zoom-pan by rendering canvas to destination canvas
 * Worker
 * Tile multiple canvases
 * Multiple canvases in different workers

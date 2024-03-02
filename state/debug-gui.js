@@ -80,8 +80,11 @@ export function setupDebugGui(state) {
 		.add(options.canvas, 'useCssTransform')
 		.name('Pan with CSS');
 	folders[RendererOptions.CANVAS]
-		.add(options.canvas, 'drawDeltas')
+		.add(options.canvas, 'onlyDrawChanges')
 		.name('Only draw changes');
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'useBufferCanvas')
+		.name('Use buffer canvas');
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useWorker')
 		.name('Use Web Worker');
