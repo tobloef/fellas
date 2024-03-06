@@ -78,13 +78,25 @@ export function setupDebugGui(state) {
 	folders[RendererOptions.CANVAS].hide();
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useCssTransform')
-		.name('Pan with CSS');
+		.name('Pan with CSS')
+		.listen()
+		.onChange(() => {
+			if (options.canvas.useCssTransform) {
+				options.canvas.useBufferCanvas = false;
+			}
+		});
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'onlyDrawChanges')
 		.name('Only draw changes');
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useBufferCanvas')
-		.name('Use buffer canvas');
+		.name('Use buffer canvas')
+		.listen()
+		.onChange(() => {
+			if (options.canvas.useBufferCanvas) {
+				options.canvas.useCssTransform = false;
+			}
+		});
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useWorker')
 		.name('Use Web Worker');
