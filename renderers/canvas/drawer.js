@@ -1,5 +1,6 @@
 import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
+import {CanvasOffsetStrategy} from "../../state/options.js";
 
 export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	const { options, camera } = state;
@@ -13,7 +14,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	let width = spriteSet.width;
 	let height = spriteSet.height;
 
-	if (!options.canvas.useCssTransform && !options.canvas.useBufferCanvas) {
+	if (options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
 		width *= camera.scale;
 		height *= camera.scale;
 	}
@@ -33,7 +34,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 		x *= width;
 		y *= height;
 
-		if (!options.canvas.useCssTransform && !options.canvas.useBufferCanvas) {
+		if (options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
 			x += camera.offset.x * camera.scale;
 			y += camera.offset.y * camera.scale;
 		}

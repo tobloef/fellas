@@ -25,5 +25,3 @@ await setupRenderers(state, containerElement);
 
 const resolution = findMaxCanvasSize();
 const count = resolutionToCount(resolution, SpriteSets[state.options.spriteSet]);
-console.debug('resolution', resolution);
-console.debug('count', count);

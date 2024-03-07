@@ -25,17 +25,32 @@ function getRecursivelyObservableProxyHandler(
 		get(target, key) {
 			const path = parentPath ? `${parentPath}.${key}` : key;
 			if (parentPath == null && key === 'observe') {
-				return (observedPath, callback) => {
-					if (unobservedProps.includes(observedPath)) {
-						throw new Error(`Path "${observedPath}" is not observable.`);
+				return (observedPathOrPaths, callback) => {
+					const observedPaths = Array.isArray(observedPathOrPaths)
+						? observedPathOrPaths
+						: [observedPathOrPaths];
+
+					const wrappedCallback = (e) => {
+						const { newValue, oldValue } = e.detail;
+						if (newValue === oldValue) {
+							return;
+						}
+
+						return callback(e.detail);
+					};
+
+					for (const observedPath of observedPaths) {
+						if (unobservedProps.includes(observedPath)) {
+							throw new Error(`Path "${observedPath}" is not observable.`);
+						}
+
+						eventTarget.addEventListener(observedPath, wrappedCallback);
 					}
 
-					const wrappedCallback = (e) => callback(e.detail);
-
-					eventTarget.addEventListener(observedPath, wrappedCallback);
-
 					return () => {
-						eventTarget.removeEventListener(observedPath, wrappedCallback);
+						for (const observedPath of observedPaths) {
+							eventTarget.removeEventListener(observedPath, wrappedCallback);
+						}
 					};
 				};
 			}
@@ -53,14 +68,18 @@ function getRecursivelyObservableProxyHandler(
 			const oldValue = target[key];
 			target[key] = newValue;
 
-			const path = parentPath ? `${parentPath}.${key}` : key;
+			const fullPath = parentPath ? `${parentPath}.${key}` : key;
+			const parts = fullPath.split('.');
 
-			const isObservable = !unobservedProps.includes(path);
-			if (isObservable) {
-				eventTarget.dispatchEvent(
-					new CustomEvent(path, { detail: { oldValue, newValue } }),
-				);
-			}
+			[fullPath, ...parts].forEach((path) => {
+				const isObservable = !unobservedProps.includes(path);
+
+				if (isObservable) {
+					eventTarget.dispatchEvent(
+						new CustomEvent(path, { detail: { oldValue, newValue } }),
+					);
+				}
+			})
 
 			return true;
 		},

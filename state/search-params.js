@@ -12,11 +12,9 @@ const STATE_TO_SEARCH_PARAMS = {
 			elementType: string,
 		},
 		canvas: {
-			useCssTransform: boolean,
+			offsetStrategy: string,
 			onlyDrawChanges: boolean,
-			useBufferCanvas: boolean,
 			useWorker: boolean,
-			useMultipleCanvases: boolean,
 			useMultipleWorkers: boolean,
 		},
 	},

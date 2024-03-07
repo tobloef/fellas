@@ -1,4 +1,5 @@
 import {
+	CanvasOffsetStrategy,
 	ImgElementType,
 	ImgOffsetStrategy,
 	RendererOptions,
@@ -77,32 +78,14 @@ export function setupDebugGui(state) {
 	folders[RendererOptions.CANVAS].open();
 	folders[RendererOptions.CANVAS].hide();
 	folders[RendererOptions.CANVAS]
-		.add(options.canvas, 'useCssTransform')
-		.name('Pan with CSS')
-		.listen()
-		.onChange(() => {
-			if (options.canvas.useCssTransform) {
-				options.canvas.useBufferCanvas = false;
-			}
-		});
+		.add(options.canvas, 'offsetStrategy', Object.values(CanvasOffsetStrategy))
+		.name('Panning');
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'onlyDrawChanges')
 		.name('Only draw changes');
 	folders[RendererOptions.CANVAS]
-		.add(options.canvas, 'useBufferCanvas')
-		.name('Use buffer canvas')
-		.listen()
-		.onChange(() => {
-			if (options.canvas.useBufferCanvas) {
-				options.canvas.useCssTransform = false;
-			}
-		});
-	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useWorker')
 		.name('Use Web Worker');
-	folders[RendererOptions.CANVAS]
-		.add(options.canvas, 'useMultipleCanvases')
-		.name('Multiple canvases');
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'useMultipleWorkers')
 		.name('Multiple workers');

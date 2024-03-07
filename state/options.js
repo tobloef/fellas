@@ -15,6 +15,12 @@ export const ImgOffsetStrategy = {
 	TRANSLATE: 'Translate',
 };
 
+export const CanvasOffsetStrategy = {
+	FULL_REDRAW: 'Full Re-draw',
+	CSS_TRANSFORM: 'CSS Transform',
+	BUFFER_CANVAS: 'Buffer Canvas',
+};
+
 export const ImgElementType = {
 	IMG: 'Image',
 	DIV: 'Div',
@@ -33,11 +39,9 @@ export const DEFAULT_OPTIONS = {
 		elementType: ImgElementType.IMG,
 	},
 	canvas: {
-		useCssTransform: false,
 		onlyDrawChanges: false,
-		useBufferCanvas: false,
+		offsetStrategy: CanvasOffsetStrategy.FULL_REDRAW,
 		useWorker: false,
-		useMultipleCanvases: false,
 		useMultipleWorkers: false,
 	},
 	webgl: {},

@@ -3,6 +3,7 @@ import { draw } from './drawer.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 import { randomChoice } from '../../utils/random.js';
 import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
+import {CanvasOffsetStrategy} from "../../state/options.js";
 
 export class CanvasRenderer extends AbstractRenderer {
 	#state = null;
@@ -24,12 +25,7 @@ export class CanvasRenderer extends AbstractRenderer {
 
 		this.#setupStateObservers();
 
-		this.#setupCanvas();
-		await this.#updateSpriteSet();
-		this.#updateScreenSize();
-		this.#updateOffset();
-		await this.#setupImages();
-		this.#setupFellas();
+		this.#reinitialize();
 
 		if (this.#state.options.canvas.useWorker) {
 			this.#setupWorkers();
@@ -44,40 +40,18 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	#setupStateObservers() {
-		this.#state.observe('screenSize', () => {
-			this.#updateScreenSize();
-		});
+		this.#state.observe('screenSize', this.#updateScreenSize.bind(this));
+		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
+		this.#state.observe('options', this.#reinitialize.bind(this));
+	}
 
-		this.#state.observe('options.spriteSet', async () => {
-			await this.#updateSpriteSet();
-			await this.#setupImages();
-			this.#setupFellas();
-		});
-
-		this.#state.observe('options.isAnimatedByDefault', () => {
-			this.#setupFellas();
-		});
-
-		this.#state.observe('options.count', () => {
-			this.#updateScreenSize();
-			this.#setupFellas();
-		});
-
-		this.#state.observe('camera.offset', () => {
-			this.#updateOffset();
-		});
-
-		this.#state.observe('options.canvas.useCssTransform', () => {
-			this.#setupCanvas();
-			this.#updateScreenSize();
-			this.#updateOffset();
-		});
-
-		this.#state.observe('options.canvas.useBufferCanvas', () => {
-			this.#setupCanvas();
-			this.#updateScreenSize();
-			this.#updateOffset();
-		});
+	async #reinitialize() {
+		this.#setupCanvas();
+		await this.#updateSpriteSet();
+		this.#updateScreenSize();
+		this.#updateOffset();
+		await this.#setupImages();
+		this.#setupFellas();
 	}
 
 	#setupCanvas() {
@@ -89,7 +63,7 @@ export class CanvasRenderer extends AbstractRenderer {
 		this.#ctx = canvas.getContext('2d', { alpha: false, antialias: false });
 		this.#ctx.imageSmoothingEnabled = false;
 
-		if (this.#state.options.canvas.useCssTransform) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
 			this.#canvasesElement = document.createElement('div');
 			this.#canvasesElement.className = 'transform-wrapper';
 			this.#containerElement.appendChild(this.#canvasesElement);
@@ -100,7 +74,7 @@ export class CanvasRenderer extends AbstractRenderer {
 
 		this.#needsGlobalRedraw = true;
 
-		if (this.#state.options.canvas.useBufferCanvas) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
 			this.#bufferCanvas = new OffscreenCanvas(0, 0);
 			this.#bufferCtx = this.#bufferCanvas.getContext('2d', { alpha: false, antialias: false });
 			this.#bufferCtx.imageSmoothingEnabled = false;
@@ -119,7 +93,7 @@ export class CanvasRenderer extends AbstractRenderer {
 
 	async #setupImages() {
 		if (this.#state.options.canvas.useWorker) {
-
+			// TODO
 		} else {
 			for (const variation of this.#spriteSet.variations) {
 				const stillLSrcFunc = this.#spriteSet.assets.still;
@@ -143,13 +117,13 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	#updateOffset() {
-		if (this.#state.options.canvas.useCssTransform) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
 			const { offset, scale } = this.#state.camera;
 			const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
 			this.#canvasesElement.style.transform = transform;
 		}
 
-		if (!this.#state.options.canvas.useBufferCanvas && !this.#state.options.canvas.useCssTransform) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
 			this.#needsGlobalRedraw = true;
 		}
 	}
@@ -162,7 +136,7 @@ export class CanvasRenderer extends AbstractRenderer {
 		const screenWidth = this.#state.screenSize.width;
 		const screenHeight = this.#state.screenSize.height;
 
-		const { useCssTransform } = this.#state.options.canvas;
+		const useCssTransform = this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM;
 
 		if (useCssTransform) {
 			this.#ctx.canvas.style.width = `${gridWidth}px`;
@@ -176,7 +150,7 @@ export class CanvasRenderer extends AbstractRenderer {
 		this.#ctx.canvas.height = useCssTransform ? gridHeight : screenHeight;
 		this.#ctx.imageSmoothingEnabled = false;
 
-		if (this.#state.options.canvas.useBufferCanvas) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
 			this.#bufferCanvas.width = gridWidth;
 			this.#bufferCanvas.height = gridHeight;
 			this.#bufferCtx.imageSmoothingEnabled = false;
@@ -222,7 +196,7 @@ export class CanvasRenderer extends AbstractRenderer {
 		}
 
 		if (!this.#state.options.canvas.useWorker) {
-			if (this.#state.options.canvas.useBufferCanvas) {
+			if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
 				draw(this.#bufferCtx, this.#state, this.#fellas, this.#needsGlobalRedraw);
 				const offset = this.#state.camera.offset;
 				const scale = this.#state.camera.scale;
