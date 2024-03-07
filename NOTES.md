@@ -54,8 +54,26 @@
 * Unique vs common urls
 * Common Image objects instead of many instances
 
+## Misc.
+
+### Canvas display modes
+
+Screen-canvas
+  One display canvas, no buffer canvases
+  Draw fellas directly to display
+
+CSS Transform
+  Many display canvases, no buffer canvases
+  Draw fellas tiled to display canvases
+
+Buffer-canvases
+  One display canvas, many buffer canvases
+  Draw fellas tiled to buffer canvases
+  Then draw buffer canvases to display canvas
+
 ## TODO
 
+* Consider splitting canvas renderer or some logic based on display modes? To have cleaner code with fewer conditionals.
 * Tile multiple canvases
 * Worker
 * Multiple canvases in different workers
