@@ -5,23 +5,23 @@ export class AbstractCanvasSubRenderer {
 		}
 	}
 
-	async setup() {
+	setup() {
 		throw new TypeError(`Cannot call static method ${this.setup.name} of ${AbstractCanvasSubRenderer.name} directly.`);
 	}
 
-	async updateDisplaySize() {
+	updateDisplaySize() {
 		throw new TypeError(`Cannot call static method ${this.updateDisplaySize.name} of ${AbstractCanvasSubRenderer.name} directly.`);
 	}
 
-	async updateCamera() {
+	updateCamera() {
 		throw new TypeError(`Cannot call static method ${this.updateCamera.name} of ${AbstractCanvasSubRenderer.name} directly.`);
 	}
 
-	async loop() {
+	loop() {
 		throw new TypeError(`Cannot call static method ${this.loop.name} of ${AbstractCanvasSubRenderer.name} directly.`);
 	}
 
-	async destroy() {
+	destroy() {
 		throw new TypeError(`Cannot call static method ${this.destroy.name} of ${AbstractCanvasSubRenderer.name} directly.`);
 	}
 }

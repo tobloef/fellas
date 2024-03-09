@@ -21,7 +21,4 @@ setStateFromSearchParams(state);
 setupDebugGui(state);
 setupSizeObserver(state, containerElement);
 setupInputHandlers(state, containerElement);
-await setupRenderers(state, containerElement);
-
-const resolution = findMaxCanvasSize();
-const count = resolutionToCount(resolution, SpriteSets[state.options.spriteSet]);
+setupRenderers(state, containerElement);

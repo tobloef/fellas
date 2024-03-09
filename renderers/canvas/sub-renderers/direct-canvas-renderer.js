@@ -17,10 +17,9 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	}
 
 	setup() {
-		this.setupCanvas();
 		this.setupImages();
+		this.setupCanvas();
 		this.setupFellas();
-		console.debug('needsRedraw = true')
 		this.needsRedraw = true;
 	}
 
@@ -39,6 +38,22 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		this.ctx = context;
 	}
 
+	setupFellas() {
+		this.fellas = [];
+
+		const { spriteSet, count, isAnimatedByDefault } = this.state.options;
+
+		for (let i = 0; i < count; i++) {
+			const fella = {
+				isAnimated: isAnimatedByDefault,
+				variation: randomChoice(SpriteSets[spriteSet].variations),
+				needsRedraw: true,
+			};
+
+			this.fellas.push(fella);
+		}
+	}
+
 	setupImages() {
 		this.images = {};
 
@@ -52,23 +67,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			image.src = src;
 			image.onload = async () => {
 				this.images[variation] = await createImageBitmap(image);
+				this.needsRedraw = true;
 			}
-		}
-	}
-
-	setupFellas() {
-		this.fellas = [];
-
-		const options = this.state.options;
-		const spriteSet = SpriteSets[options.spriteSet];
-
-		for (let i = 0; i < options.count; i++) {
-			const fella = {
-				isAnimated: options.isAnimatedByDefault,
-				variation: randomChoice(spriteSet.variations),
-			};
-
-			this.fellas.push(fella);
 		}
 	}
 
@@ -80,6 +80,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		this.ctx.canvas.width = screenSize.width;
 		this.ctx.canvas.height = screenSize.height;
 		this.ctx.imageSmoothingEnabled = false;
+
+		this.needsRedraw = true;
 	}
 
 	updateCamera() {
@@ -96,7 +98,10 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	draw() {
 		const { options, camera } = this.state;
 		const spriteSet = SpriteSets[options.spriteSet];
-		const { columns } = countToRowsAndColumns(options.count);
+
+		if (this.images == null) {
+			return;
+		}
 
 		if (!options.canvas.onlyDrawChanges || this.needsRedraw) {
 			this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
@@ -107,12 +112,16 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 
 		let skipped = false;
 
+		const count = options.count;
+		const onlyDrawChanges = options.canvas.onlyDrawChanges;
+
 		for (let i = 0; i < this.fellas.length; i++) {
+
 			skipped = true;
 
 			const fella = this.fellas[i];
 
-			if (options.canvas.onlyDrawChanges && !fella.needsRedraw && !this.needsRedraw) {
+			if (onlyDrawChanges && !fella.needsRedraw && !this.needsRedraw) {
 				continue;
 			}
 
@@ -121,6 +130,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			if (image == null) {
 				continue;
 			}
+
+			const { columns } = countToRowsAndColumns(count);
 
 			let x = (i % columns);
 			let y = Math.floor(i / columns);
@@ -131,7 +142,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			x += camera.offset.x * camera.scale;
 			y += camera.offset.y * camera.scale;
 
-			if (options.canvas.onlyDrawChanges) {
+			if (onlyDrawChanges) {
 				this.ctx.clearRect(x, y, width, height);
 			}
 
@@ -158,21 +169,19 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	}
 
 	swapFellaVariations() {
-		const options = this.state.options;
+		const { spriteSet, variationChangesPerFrame } = this.state.options;
 
-		const spriteSet = SpriteSets[options.spriteSet];
-
-		for (let i = 0; i < options.variationChangesPerFrame; i++) {
+		for (let i = 0; i < variationChangesPerFrame; i++) {
 			const fella = randomChoice(this.fellas);
-			fella.variation = randomChoice(spriteSet.variations);
+			fella.variation = randomChoice(SpriteSets[spriteSet].variations);
 			fella.needsRedraw = true;
 		}
 	}
 
 	swapFellaAnimations() {
-		const options = this.state.options;
+		const { animationChangesPerFrame } = this.state.options;
 
-		for (let i = 0; i < options.animationChangesPerFrame; i++) {
+		for (let i = 0; i < animationChangesPerFrame; i++) {
 			const fella = randomChoice(this.fellas);
 			fella.isAnimated = !fella.isAnimated;
 			fella.needsRedraw = true;

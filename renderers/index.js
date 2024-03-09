@@ -13,13 +13,13 @@ const Renderers = {
 
 let currentRenderer = null;
 
-export async function setupRenderers(state, containerElement) {
-	async function reinitialize() {
+export function setupRenderers(state, containerElement) {
+	function reinitialize() {
 		currentRenderer?.destroy();
 		const Renderer = Renderers[state.options.renderer];
 		currentRenderer = new Renderer(state, containerElement);
 	}
 
-	await reinitialize();
+	reinitialize();
 	state.observe('options.renderer', reinitialize);
 }

@@ -5,11 +5,11 @@ export class AbstractRenderer {
 		}
 	}
 
-	async initialize(state, containerElement) {
+	initialize(state, containerElement) {
 		throw new TypeError(`Cannot call static method ${this.initialize.name} of ${AbstractRenderer.name} directly.`);
 	}
 
-	async destroy() {
+	destroy() {
 		throw new TypeError(`Cannot call method ${this.destroy.name} of ${AbstractRenderer.name} directly.`);
 	}
 }

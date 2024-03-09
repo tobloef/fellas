@@ -6,10 +6,8 @@ import { TiledCanvasSubRenderer } from './sub-renderers/tiled-canvas-renderer.js
 
 export class CanvasRenderer extends AbstractRenderer {
 	subRenderer = null;
-
 	containerElement = null;
 	state = null;
-	fellas = [];
 	animationFrame = null;
 
 	constructor(state, containerElement) {
