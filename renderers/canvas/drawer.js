@@ -14,7 +14,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 	let width = spriteSet.width;
 	let height = spriteSet.height;
 
-	if (options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
+	if (options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
 		width *= camera.scale;
 		height *= camera.scale;
 	}
@@ -34,7 +34,7 @@ export function draw(ctx, state, fellas, needsGlobalRedraw) {
 		x *= width;
 		y *= height;
 
-		if (options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
+		if (options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
 			x += camera.offset.x * camera.scale;
 			y += camera.offset.y * camera.scale;
 		}

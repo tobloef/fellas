@@ -16,9 +16,9 @@ export const ImgOffsetStrategy = {
 };
 
 export const CanvasOffsetStrategy = {
-	FULL_REDRAW: 'Full Re-draw',
-	CSS_TRANSFORM: 'CSS Transform',
-	BUFFER_CANVAS: 'Buffer Canvas',
+	DIRECT_CANVAS: 'Direct to canvas',
+	CSS_TRANSFORM: 'CSS transform',
+	BUFFER_CANVAS: 'Buffer canvas',
 };
 
 export const ImgElementType = {
@@ -40,7 +40,7 @@ export const DEFAULT_OPTIONS = {
 	},
 	canvas: {
 		onlyDrawChanges: false,
-		offsetStrategy: CanvasOffsetStrategy.FULL_REDRAW,
+		offsetStrategy: CanvasOffsetStrategy.DIRECT_CANVAS,
 		useWorker: false,
 		useMultipleWorkers: false,
 	},

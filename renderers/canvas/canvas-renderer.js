@@ -8,7 +8,6 @@ import {CanvasOffsetStrategy} from "../../state/options.js";
 export class CanvasRenderer extends AbstractRenderer {
 	#state = null;
 	#fellas = [];
-	#ctx = null;
 	#worker = null;
 	#spriteSet = null;
 	#images = {};
@@ -16,8 +15,9 @@ export class CanvasRenderer extends AbstractRenderer {
 	#canvasesElement = null;
 	#animationFrame = null;
 	#needsGlobalRedraw = true;
-	#bufferCanvas = null;
-	#bufferCtx = null;
+
+	#displayContexts = [];
+	#bufferContexts = [];
 
 	async initialize(state, containerElement) {
 		this.#state = state;
@@ -36,7 +36,10 @@ export class CanvasRenderer extends AbstractRenderer {
 
 	destroy() {
 		cancelAnimationFrame(this.#animationFrame);
-		this.#ctx.canvas.remove();
+		this.#bufferContexts.forEach((ctx) => ctx.canvas.remove());
+		this.#displayContexts.forEach((ctx) => ctx.canvas.remove());
+		this.#bufferContexts = [];
+		this.#displayContexts = [];
 	}
 
 	#setupStateObservers() {
@@ -57,6 +60,23 @@ export class CanvasRenderer extends AbstractRenderer {
 	#setupCanvas() {
 		this.#containerElement.replaceChildren();
 
+
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
+			const canvas = document.createElement('canvas');
+			canvas.style.imageRendering = 'pixelated';
+			const context = canvas.getContext('2d', { alpha: false, antialias: false });
+			context.imageSmoothingEnabled = false;
+			this.#displayContexts.push(context);
+		}
+
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
+			const
+		}
+
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
+			
+		}
+		
 		const canvas = document.createElement('canvas');
 		canvas.style.imageRendering = 'pixelated';
 
@@ -123,7 +143,7 @@ export class CanvasRenderer extends AbstractRenderer {
 			this.#canvasesElement.style.transform = transform;
 		}
 
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.FULL_REDRAW) {
+		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
 			this.#needsGlobalRedraw = true;
 		}
 	}

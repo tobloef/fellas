@@ -73,7 +73,6 @@ Buffer-canvases
 
 ## TODO
 
-* Consider splitting canvas renderer or some logic based on display modes? To have cleaner code with fewer conditionals.
 * Tile multiple canvases
 * Worker
 * Multiple canvases in different workers
