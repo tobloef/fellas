@@ -39,8 +39,8 @@ export const DEFAULT_OPTIONS = {
 		elementType: ImgElementType.IMG,
 	},
 	canvas: {
-		onlyDrawChanges: false,
 		offsetStrategy: CanvasOffsetStrategy.DIRECT_CANVAS,
+		onlyDrawChanges: false,
 		useWorker: false,
 		useMultipleWorkers: false,
 	},

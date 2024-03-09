@@ -17,8 +17,7 @@ export async function setupRenderers(state, containerElement) {
 	async function reinitialize() {
 		currentRenderer?.destroy();
 		const Renderer = Renderers[state.options.renderer];
-		currentRenderer = new Renderer()
-		await currentRenderer.initialize(state, containerElement);
+		currentRenderer = new Renderer(state, containerElement);
 	}
 
 	await reinitialize();

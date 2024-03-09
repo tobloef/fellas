@@ -1,142 +1,81 @@
 import { AbstractRenderer } from '../abstract-renderer.js';
-import { draw } from './drawer.js';
-import { SpriteSets } from '../../state/sprite-sets.js';
-import { randomChoice } from '../../utils/random.js';
-import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
-import {CanvasOffsetStrategy} from "../../state/options.js";
+import { CanvasOffsetStrategy } from '../../state/options.js';
+import { DirectCanvasSubRenderer } from './sub-renderers/direct-canvas-renderer.js';
+import { BufferedCanvasSubRenderer } from './sub-renderers/buffered-canvas-renderer.js';
+import { TiledCanvasSubRenderer } from './sub-renderers/tiled-canvas-renderer.js';
 
 export class CanvasRenderer extends AbstractRenderer {
-	#state = null;
-	#fellas = [];
-	#worker = null;
-	#spriteSet = null;
-	#images = {};
-	#containerElement = null;
-	#canvasesElement = null;
-	#animationFrame = null;
-	#needsGlobalRedraw = true;
+	subRenderer = null;
 
-	#displayContexts = [];
-	#bufferContexts = [];
+	containerElement = null;
+	state = null;
+	fellas = [];
+	animationFrame = null;
 
-	async initialize(state, containerElement) {
-		this.#state = state;
-		this.#containerElement = containerElement;
+	constructor(state, containerElement) {
+		super();
 
-		this.#setupStateObservers();
+		this.state = state;
+		this.containerElement = containerElement;
 
-		this.#reinitialize();
+		this.setupStateObservers();
+		this.setup();
+		this.loop();
+	}
 
-		if (this.#state.options.canvas.useWorker) {
-			this.#setupWorkers();
+	setupStateObservers() {
+		this.state.observe('screenSize', this.updateDisplaySize.bind(this));
+		this.state.observe('camera.offset', this.updateCamera.bind(this));
+		this.state.observe([
+			'options.count',
+			'options.spriteSet',
+			'options.isAnimatedByDefault',
+			'options.canvas.offsetStrategy',
+		], this.setup.bind(this));
+	}
+
+	setup() {
+		this.subRenderer?.destroy();
+
+		switch (this.state.options.canvas.offsetStrategy) {
+			case CanvasOffsetStrategy.DIRECT_CANVAS:
+				this.subRenderer = new DirectCanvasSubRenderer(this.state, this.containerElement);
+				break;
+			case CanvasOffsetStrategy.CSS_TRANSFORM:
+				this.subRenderer = new TiledCanvasSubRenderer(this.state, this.containerElement);
+				break;
+			case CanvasOffsetStrategy.BUFFER_CANVAS:
+				this.subRenderer = new BufferedCanvasSubRenderer(this.state, this.containerElement);
+				break;
+			default:
+				throw new Error(`Unknown canvas offset strategy: ${this.state.options.canvas.offsetStrategy}`);
 		}
 
-		this.#loop();
+		this.subRenderer.setup();
+		this.updateDisplaySize();
+		this.updateCamera();
+	}
+
+	updateDisplaySize() {
+		this.subRenderer.updateDisplaySize();
+	}
+
+	updateCamera() {
+		this.subRenderer.updateCamera();
+	}
+
+	loop() {
+		this.subRenderer.loop();
+		this.animationFrame = requestAnimationFrame(this.loop.bind(this));
 	}
 
 	destroy() {
-		cancelAnimationFrame(this.#animationFrame);
-		this.#bufferContexts.forEach((ctx) => ctx.canvas.remove());
-		this.#displayContexts.forEach((ctx) => ctx.canvas.remove());
-		this.#bufferContexts = [];
-		this.#displayContexts = [];
+		this.subRenderer.destroy();
+		cancelAnimationFrame(this.animationFrame);
+		this.containerElement.replaceChildren();
 	}
 
-	#setupStateObservers() {
-		this.#state.observe('screenSize', this.#updateScreenSize.bind(this));
-		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
-		this.#state.observe('options', this.#reinitialize.bind(this));
-	}
-
-	async #reinitialize() {
-		this.#setupCanvas();
-		await this.#updateSpriteSet();
-		this.#updateScreenSize();
-		this.#updateOffset();
-		await this.#setupImages();
-		this.#setupFellas();
-	}
-
-	#setupCanvas() {
-		this.#containerElement.replaceChildren();
-
-
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
-			const canvas = document.createElement('canvas');
-			canvas.style.imageRendering = 'pixelated';
-			const context = canvas.getContext('2d', { alpha: false, antialias: false });
-			context.imageSmoothingEnabled = false;
-			this.#displayContexts.push(context);
-		}
-
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
-			const
-		}
-
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
-			
-		}
-		
-		const canvas = document.createElement('canvas');
-		canvas.style.imageRendering = 'pixelated';
-
-		this.#ctx = canvas.getContext('2d', { alpha: false, antialias: false });
-		this.#ctx.imageSmoothingEnabled = false;
-
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
-			this.#canvasesElement = document.createElement('div');
-			this.#canvasesElement.className = 'transform-wrapper';
-			this.#containerElement.appendChild(this.#canvasesElement);
-			this.#canvasesElement.appendChild(canvas);
-		} else {
-			this.#containerElement.appendChild(canvas);
-		}
-
-		this.#needsGlobalRedraw = true;
-
-		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.BUFFER_CANVAS) {
-			this.#bufferCanvas = new OffscreenCanvas(0, 0);
-			this.#bufferCtx = this.#bufferCanvas.getContext('2d', { alpha: false, antialias: false });
-			this.#bufferCtx.imageSmoothingEnabled = false;
-		}
-	}
-
-	async #updateSpriteSet() {
-		const spriteSet = SpriteSets[this.#state.options.spriteSet];
-
-		if (spriteSet === undefined) {
-			throw new Error(`Unknown sprite set "${this.#state.options.spriteSet}".`);
-		}
-
-		this.#spriteSet = spriteSet;
-	}
-
-	async #setupImages() {
-		if (this.#state.options.canvas.useWorker) {
-			// TODO
-		} else {
-			for (const variation of this.#spriteSet.variations) {
-				const stillLSrcFunc = this.#spriteSet.assets.still;
-
-				const src = stillLSrcFunc(variation);
-
-				this.#images[variation] = await this.#getBitmap(src);
-			}
-		}
-	}
-
-	#setupFellas() {
-		this.#fellas = [];
-
-		const count = this.#state.options.count;
-
-		for (let i = 0; i < count; i++) {
-			const fella = this.#createFella();
-			this.#fellas.push(fella);
-		}
-	}
-
-	#updateOffset() {
+	/*	#updateOffset() {
 		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.CSS_TRANSFORM) {
 			const { offset, scale } = this.#state.camera;
 			const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
@@ -146,9 +85,9 @@ export class CanvasRenderer extends AbstractRenderer {
 		if (this.#state.options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
 			this.#needsGlobalRedraw = true;
 		}
-	}
+	}*/
 
-	#updateScreenSize() {
+	/*#updateScreenSize() {
 		const { columns, rowsWithOverflow } = countToRowsAndColumns(this.#state.options.count);
 		const gridWidth = columns * this.#spriteSet.width;
 		const gridHeight = rowsWithOverflow * this.#spriteSet.height;
@@ -175,42 +114,9 @@ export class CanvasRenderer extends AbstractRenderer {
 			this.#bufferCanvas.height = gridHeight;
 			this.#bufferCtx.imageSmoothingEnabled = false;
 		}
-	}
+	}*/
 
-	#createFella() {
-		const options = this.#state.options;
-
-		const fella = {
-			isAnimated: options.isAnimatedByDefault,
-			variation: randomChoice(this.#spriteSet.variations),
-			needsRedraw: true,
-		};
-
-		if (!options.canvas.useWorker) {
-			fella.image = this.#images[fella.variation];
-		}
-
-		return fella;
-	}
-
-	#setupWorkers() {
-		this.#worker = new Worker('renderers/canvas/worker.js', { type: 'module' });
-		// TODO
-	}
-
-	#swapFellaVariations() {
-		// TODO
-	}
-
-	#swapFellaAnimations() {
-		// TODO
-	}
-
-	#updateWorkers() {
-		// TODO
-	}
-
-	#draw() {
+	/*#draw() {
 		if (this.#state.options.canvas.useWorker) {
 			this.#updateWorkers();
 		}
@@ -231,21 +137,14 @@ export class CanvasRenderer extends AbstractRenderer {
 			}
 			this.#needsGlobalRedraw = false;
 		}
-	}
+	}*/
 
-	#loop() {
+	/*#loop() {
 		this.#swapFellaVariations();
 		this.#swapFellaAnimations();
 
 		this.#draw();
 
 		this.#animationFrame = requestAnimationFrame(this.#loop.bind(this));
-	}
-
-	async #getBitmap(src) {
-		const image = new Image();
-		image.src = src;
-		await image.decode();
-		return createImageBitmap(image);
-	}
+	}*/
 }

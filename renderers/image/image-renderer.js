@@ -8,115 +8,87 @@ import {
 import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 
 export class ImageRenderer extends AbstractRenderer {
-	#state = null;
-	#fellas = [];
-	#fellasElement = null;
-	#containerElement = null;
-	#spriteSet = null;
-	#animationFrame = null;
+	containerElement = null;
+	state = null;
+	fellas = [];
+	animationFrame = null;
+	fellasElement = null;
 
-	async initialize(state, containerElement) {
-		this.#state = state;
-		this.#containerElement = containerElement;
+	constructor(state, containerElement) {
+		super();
 
-		this.#fellasElement = this.#createFellasElement();
-		this.#containerElement.appendChild(this.#fellasElement);
+		this.state = state;
+		this.containerElement = containerElement;
 
-		this.#setupStateObservers();
-		this.#updateSpriteSet();
-		this.#updateOffset();
-		this.#loop();
+		this.setupStateObservers();
+		this.setup();
+		this.loop();
 	}
 
-	async destroy() {
-		cancelAnimationFrame(this.#animationFrame);
-		this.#containerElement.replaceChildren()
+	setupStateObservers() {
+		this.state.observe('screenSize', this.updateDisplaySize.bind(this));
+		this.state.observe('camera.offset', this.updateCamera.bind(this));
+		this.state.observe([
+			'options.count',
+			'options.spriteSet',
+			'options.isAnimatedByDefault',
+			'options.img.offsetStrategy',
+			'options.img.useUniqueImages',
+			'options.img.elementType',
+		], this.setup.bind(this));
 	}
 
-	#createFellasElement() {
-		const fellasElement = document.createElement('div');
+	setup() {
+		this.containerElement.replaceChildren();
 
-		fellasElement.className = 'transform-wrapper';
+		const options = this.state.options;
+		const spriteSet = SpriteSets[options.spriteSet];
 
-		return fellasElement;
-	}
+		this.fellasElement = document.createElement('div');
+		this.containerElement.appendChild(this.fellasElement);
 
-	#setupStateObservers() {
-		this.#state.observe('options.spriteSet', this.#updateSpriteSet.bind(this));
-		this.#state.observe('options.isAnimatedByDefault', this.#setupFellas.bind(this));
-		this.#state.observe('options.count', this.#updateCount.bind(this));
-		this.#state.observe('camera.offset', this.#updateOffset.bind(this));
-		this.#state.observe('options.img.useUniqueImages', this.#setupFellas.bind(this));
-		this.#state.observe('options.img.elementType', this.#setupFellas.bind(this));
-	}
+		this.updateDisplaySize();
+		this.updateCamera();
 
-	#updateSpriteSet() {
-		const spriteSet = SpriteSets[this.#state.options.spriteSet];
-		if (spriteSet === undefined) {
-			throw new Error(`Unknown sprite set "${this.#state.options.spriteSet}".`);
+		this.fellas.forEach((fella) => fella.element.remove());
+		this.fellas = [];
+
+		for (let i = 0; i < options.count; i++) {
+			const fella = {
+				isAnimated: options.isAnimatedByDefault,
+				variation: randomChoice(spriteSet.variations),
+			};
+
+			switch (options.img.elementType) {
+				case ImgElementType.IMG:
+					fella.element = document.createElement('img');
+					fella.element.draggable = false;
+					break;
+				case ImgElementType.DIV:
+					fella.element = document.createElement('div');
+					fella.element.className = 'image-div';
+					fella.element.style.width = `${spriteSet.width}px`;
+					fella.element.style.height = `${spriteSet.height}px`;
+					break;
+				default:
+					throw new Error(`Unknown element type "${options.img.elementType}".`);
+			}
+
+			this.updateFellaSrc(fella, spriteSet);
+
+			this.fellasElement.appendChild(fella.element);
+			this.fellas.push(fella);
 		}
-
-		this.#spriteSet = spriteSet;
-		this.#updateCount();
 	}
 
-	#updateCount() {
-		const { rowsWithOverflow, columns } = countToRowsAndColumns(this.#state.options.count);
-		this.#fellasElement.style.width = `${columns * this.#spriteSet.width}px`;
-		this.#fellasElement.style.height = `${rowsWithOverflow * this.#spriteSet.height}px`;
-		this.#setupFellas();
-	}
-
-	#setupFellas() {
-		this.#fellas.forEach(this.#destroyFella.bind(this));
-		this.#fellas = [];
-
-		const count = this.#state.options.count;
-
-		for (let i = 0; i < count; i++) {
-			const fella = this.#createFella();
-			this.#fellasElement.appendChild(fella.element);
-			this.#fellas.push(fella);
-		}
-	}
-
-	#createFella() {
-		const options = this.#state.options;
-
-		const fella = {
-			isAnimated: options.isAnimatedByDefault,
-			variation: randomChoice(this.#spriteSet.variations),
-		};
-
-		switch (options.img.elementType) {
-			case ImgElementType.IMG:
-				fella.element = document.createElement('img');
-				fella.element.draggable = false;
-				break;
-			case ImgElementType.DIV:
-				fella.element = document.createElement('div');
-				fella.element.className = 'image-div';
-				fella.element.style.width = `${this.#spriteSet.width}px`;
-				fella.element.style.height = `${this.#spriteSet.height}px`;
-				break;
-			default:
-				throw new Error(`Unknown element type "${options.img.elementType}".`);
-		}
-
-		this.#updateFellaSrc(fella);
-
-		return fella;
-	}
-
-	#updateFellaSrc(fella) {
-		const options = this.#state.options;
+	updateFellaSrc(fella, spriteSet) {
+		const options = this.state.options;
 
 		const srcFunc = fella.isAnimated
-			? this.#spriteSet.assets.animated
-			: this.#spriteSet.assets.still;
+			? spriteSet.assets.animated
+			: spriteSet.assets.still;
 
 		let src = srcFunc(fella.variation);
-
 		if (options.img.useUniqueImages) {
 			src += `?${Math.random()}`;
 		}
@@ -133,55 +105,68 @@ export class ImageRenderer extends AbstractRenderer {
 		}
 	}
 
-	#destroyFella(fella) {
-		fella.element.remove();
+	updateDisplaySize() {
+		const options = this.state.options;
+		const spriteSet = SpriteSets[options.spriteSet];
+		const { rowsWithOverflow, columns } = countToRowsAndColumns(options.count);
+		this.fellasElement.className = 'transform-wrapper';
+		this.fellasElement.style.width = `${columns * spriteSet.width}px`;
+		this.fellasElement.style.height = `${rowsWithOverflow * spriteSet.height}px`;
 	}
 
-	#loop() {
-		this.#swapFellaVariations();
-		this.#swapFellaAnimations();
-		this.#animationFrame = requestAnimationFrame(this.#loop.bind(this));
-	}
-
-	#swapFellaVariations() {
-		const options = this.#state.options;
-
-		for (let i = 0; i < options.variationChangesPerFrame; i++) {
-			const fella = randomChoice(this.#fellas);
-			fella.variation = randomChoice(this.#spriteSet.variations);
-			this.#updateFellaSrc(fella);
-		}
-	}
-
-	#swapFellaAnimations() {
-		const options = this.#state.options;
-
-		for (let i = 0; i < options.animationChangesPerFrame; i++) {
-			const fella = randomChoice(this.#fellas);
-			fella.isAnimated = !fella.isAnimated;
-			this.#updateFellaSrc(fella);
-		}
-	}
-
-	#updateOffset() {
-		const options = this.#state.options;
-		const offset = this.#state.camera.offset;
-		const scale = this.#state.camera.scale;
+	updateCamera() {
+		const options = this.state.options;
+		const { offset, scale } = this.state.camera;
 
 		switch (options.img.offsetStrategy) {
 			case ImgOffsetStrategy.POSITION:
-				this.#fellasElement.style.left = `${offset.x * scale}px`;
-				this.#fellasElement.style.top = `${offset.y * scale}px`;
-				this.#fellasElement.style.transform = `scale(${scale})`;
+				this.fellasElement.style.left = `${offset.x * scale}px`;
+				this.fellasElement.style.top = `${offset.y * scale}px`;
+				this.fellasElement.style.transform = `scale(${scale})`;
 				break;
 			case ImgOffsetStrategy.TRANSLATE:
 				const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
-				this.#fellasElement.style.transform = transform;
-				this.#fellasElement.style.left = '0';
-				this.#fellasElement.style.top = '0';
+				this.fellasElement.style.transform = transform;
+				this.fellasElement.style.left = '0';
+				this.fellasElement.style.top = '0';
 				break;
 			default:
 				throw new Error(`Unknown offset strategy "${options.img.offsetStrategy}".`);
+		}
+	}
+
+	loop() {
+		this.swapFellaVariations();
+		this.swapFellaAnimations();
+		this.animationFrame = requestAnimationFrame(this.loop.bind(this));
+	}
+
+	destroy() {
+		cancelAnimationFrame(this.animationFrame);
+		this.containerElement.replaceChildren()
+	}
+
+	swapFellaVariations() {
+		const options = this.state.options;
+
+		const spriteSet = SpriteSets[options.spriteSet];
+
+		for (let i = 0; i < options.variationChangesPerFrame; i++) {
+			const fella = randomChoice(this.fellas);
+			fella.variation = randomChoice(spriteSet.variations);
+			this.updateFellaSrc(fella, spriteSet);
+		}
+	}
+
+	swapFellaAnimations() {
+		const options = this.state.options;
+
+		const spriteSet = SpriteSets[options.spriteSet];
+
+		for (let i = 0; i < options.animationChangesPerFrame; i++) {
+			const fella = randomChoice(this.fellas);
+			fella.isAnimated = !fella.isAnimated;
+			this.updateFellaSrc(fella, spriteSet);
 		}
 	}
 }

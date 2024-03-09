@@ -16,6 +16,8 @@
 * One thing to dislike about the "CSS transform" trick is that it's not very reusable. Like, it works great for this one case, but in anything more complex, it adds a lot of complexity.
 * Buffer canvas as an alternative to CSS transform is great. The performance is on par and you keep it in the canvas.
   * In fact, I'm seeing a performance gain even when not using delta drawing. Perhaps due to not scaling?
+* When you start the page, sometimes there is a period where moving your mouse consumes 100% cpu and makes the canvas lag. Why? Who fucking knows! It goes away if you switch tab to YouTube for a moment...
+* The "only draw changes" is somewhat of a specific optimization if you think about it. The grid helps us a lot.
 
 ## Rules/Requirements
 
