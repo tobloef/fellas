@@ -10,10 +10,6 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	canvasesElement = null;
 	displayContexts = [];
 	images = {};
-	spriteColumnCount = 0;
-	spriteRowCount = 0;
-	canvasWidth = 0;
-	canvasHeight = 0;
 
 	constructor(state, containerElement) {
 		super();
@@ -40,7 +36,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 			image.src = src;
 			image.onload = async () => {
 				this.images[variation] = await createImageBitmap(image);
-			}
+			};
 		}
 	}
 
@@ -50,44 +46,60 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
 		const spriteSet = SpriteSets[this.state.options.spriteSet];
 
-		const { columns, rowsWithOverflow } = countToRowsAndColumns(this.state.options.count);
-		const totalWidth = columns * spriteSet.width;
-		const totalHeight = rowsWithOverflow * spriteSet.height;
+		const {
+			columns: neededColumns,
+			rowsWithOverflow: neededRows,
+		} = countToRowsAndColumns(this.state.options.count);
 
-		this.spriteColumnCount = Math.floor(MAX_CANVAS_SIZE / spriteSet.width);
-		this.spriteRowCount = Math.floor(MAX_CANVAS_SIZE / spriteSet.height);
-		this.canvasWidth = this.spriteColumnCount * spriteSet.width;
-		this.canvasHeight = this.spriteRowCount * spriteSet.height;
-		this.canvasColumns = Math.ceil(totalWidth / this.canvasWidth);
-		this.canvasRows = Math.ceil(totalHeight / this.canvasHeight);
+		const neededWidth = neededColumns * spriteSet.width;
+		const neededHeight = neededRows * spriteSet.height;
+		const maxSpriteColumns = Math.floor(MAX_CANVAS_SIZE / spriteSet.width);
+		const maxSpriteRows = Math.floor(MAX_CANVAS_SIZE / spriteSet.height);
+
+		let spriteColumnsRemaining = neededColumns;
+		let spriteRowsRemaining = neededRows;
 
 		this.canvasesElement = document.createElement('div');
 		this.canvasesElement.className = 'transform-wrapper';
-		this.canvasesElement.style.width = `${totalWidth}px`;
-		this.canvasesElement.style.height = `${totalHeight}px`;
+		this.canvasesElement.style.width = `${neededWidth}px`;
+		this.canvasesElement.style.height = `${neededHeight}px`;
 		this.containerElement.appendChild(this.canvasesElement);
 
-		for (let column = 0; column < this.canvasColumns; column++) {
-			let columnElement = document.createElement('div');
+		let column = 0;
+		let row = 0;
+
+		while (spriteColumnsRemaining > 0) {
+			this.displayContexts[column] = [];
+
+			const columnElement = document.createElement('div');
 			columnElement.className = 'transform-column';
 			this.canvasesElement.appendChild(columnElement);
 
-			for (let row = 0; row < this.canvasRows; row++) {
+			while (spriteRowsRemaining > 0) {
 				const canvas = document.createElement('canvas');
-				canvas.width = this.canvasWidth;
-				canvas.height = this.canvasHeight;
+				columnElement.appendChild(canvas);
+
+				const spriteColumnsForCanvas = Math.min(spriteColumnsRemaining, maxSpriteColumns);
+				const spriteRowsForCanvas = Math.min(spriteRowsRemaining, maxSpriteRows);
+
+				canvas.width = spriteColumnsForCanvas * spriteSet.width;
+				canvas.height = spriteRowsForCanvas * spriteSet.height;
 				canvas.style.imageRendering = 'pixelated';
+				canvas.style.width = `${canvas.width}px`;
+				canvas.style.height = `${canvas.height}px`;
 
 				const context = canvas.getContext('2d', { alpha: false, antialias: false });
 				context.imageSmoothingEnabled = false;
 
-				if (this.displayContexts[column] === undefined) {
-					this.displayContexts[column] = [];
-				}
 				this.displayContexts[column][row] = context;
 
-				columnElement.appendChild(canvas);
+				spriteRowsRemaining -= spriteRowsForCanvas;
+				row++;
 			}
+			spriteRowsRemaining = neededRows;
+			spriteColumnsRemaining -= Math.min(spriteColumnsRemaining, maxSpriteColumns);
+			row = 0;
+			column++;
 		}
 	}
 
@@ -107,7 +119,8 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		}
 	}
 
-	updateDisplaySize() {}
+	updateDisplaySize() {
+	}
 
 	updateCamera() {
 		const { offset, scale } = this.state.camera;
@@ -116,6 +129,9 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	}
 
 	loop() {
+		this.swapFellaVariations();
+		this.swapFellaAnimations();
+
 		this.draw();
 	}
 
@@ -132,22 +148,33 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		let spriteColumn = -1;
 		let spriteRow = 0;
 
+		let ctx = this.displayContexts[canvasColumn][canvasRow];
+		let updateContext = false;
+
 		for (let i = 0; i < this.fellas.length; i++) {
 			spriteColumn++;
 
-			if (spriteColumn === this.spriteColumnCount) {
+			if (spriteColumn === ctx.canvas.width / spriteSet.width) {
 				spriteColumn = 0;
 				canvasColumn++;
+				updateContext = true;
 			}
 
-			if (canvasColumn === this.canvasColumns) {
+			if (canvasColumn === this.displayContexts.length) {
 				canvasColumn = 0;
 				spriteRow++;
+				updateContext = true;
 			}
 
-			if (spriteRow === this.spriteRowCount) {
+			if (spriteRow === ctx.canvas.height / spriteSet.height) {
 				spriteRow = 0;
 				canvasRow++;
+				updateContext = true;
+			}
+
+			if (updateContext) {
+				ctx = this.displayContexts[canvasColumn][canvasRow];
+				updateContext = false;
 			}
 
 			const fella = this.fellas[i];
@@ -162,24 +189,35 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 				continue;
 			}
 
-			const ctx = this.displayContexts[canvasColumn][canvasRow];
-
 			const x = spriteColumn * spriteSet.width;
 			const y = spriteRow * spriteSet.height;
 			const width = spriteSet.width;
 			const height = spriteSet.height;
 
 			ctx.clearRect(x, y, width, height);
-
-			ctx.drawImage(
-				image,
-				x,
-				y,
-				width,
-				height,
-			);
+			ctx.drawImage(image, x, y, width, height);
 
 			fella.needsRedraw = false;
+		}
+	}
+
+	swapFellaVariations() {
+		const { spriteSet, variationChangesPerFrame } = this.state.options;
+
+		for (let i = 0; i < variationChangesPerFrame; i++) {
+			const fella = randomChoice(this.fellas);
+			fella.variation = randomChoice(SpriteSets[spriteSet].variations);
+			fella.needsRedraw = true;
+		}
+	}
+
+	swapFellaAnimations() {
+		const { animationChangesPerFrame } = this.state.options;
+
+		for (let i = 0; i < animationChangesPerFrame; i++) {
+			const fella = randomChoice(this.fellas);
+			fella.isAnimated = !fella.isAnimated;
+			fella.needsRedraw = true;
 		}
 	}
 
