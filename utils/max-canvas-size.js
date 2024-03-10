@@ -1,8 +1,6 @@
 // See this library for a more complete solution
 // https://github.com/jhildenbiddle/canvas-size/
 
-export const MAX_CANVAS_SIZE = 100; // findMaxCanvasSize();
-
 const FILL_COLOR = [255, 0, 0, 255];
 
 export function findMaxCanvasSize() {
@@ -83,3 +81,5 @@ function checkSize(ctx, size) {
     data[3] === FILL_COLOR[3]
   );
 }
+
+export const MAX_CANVAS_SIZE = findMaxCanvasSize();

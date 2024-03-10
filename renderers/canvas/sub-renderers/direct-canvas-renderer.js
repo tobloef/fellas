@@ -110,15 +110,10 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		let width = spriteSet.width * camera.scale;
 		let height = spriteSet.height * camera.scale;
 
-		let skipped = false;
-
 		const count = options.count;
 		const onlyDrawChanges = options.canvas.onlyDrawChanges;
 
 		for (let i = 0; i < this.fellas.length; i++) {
-
-			skipped = true;
-
 			const fella = this.fellas[i];
 
 			if (onlyDrawChanges && !fella.needsRedraw && !this.needsRedraw) {
@@ -155,13 +150,9 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			);
 
 			fella.needsRedraw = false;
-
-			skipped = false;
 		}
 
-		if (!skipped) {
-			this.needsRedraw = false;
-		}
+		this.needsRedraw = false;
 	}
 
 	destroy() {
