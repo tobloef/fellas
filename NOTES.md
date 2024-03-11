@@ -78,7 +78,7 @@ Buffer-canvases
 
 ## TODO
 
-* Try smaller max size
+* Canvas size experiment
 * Add "only draw changes" toggle to tiled renderer
 * Fix the image renderer
 * Buffer renderer with tiling
