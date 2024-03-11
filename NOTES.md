@@ -18,6 +18,7 @@
   * In fact, I'm seeing a performance gain even when not using delta drawing. Perhaps due to not scaling?
 * When you start the page, sometimes there is a period where moving your mouse consumes 100% cpu and makes the canvas lag. Why? Who fucking knows! It goes away if you switch tab to YouTube for a moment...
 * The "only draw changes" is somewhat of a specific optimization if you think about it. The grid helps us a lot.
+* Synchronizing worker threads might add latency or tearing. Perhaps a toggleable synchronization step?
 
 ## Rules/Requirements
 
@@ -75,7 +76,9 @@ Buffer-canvases
 
 ## TODO
 
-* Tile multiple canvases
+* Try smaller max size
+* Add "only draw changes" toggle to tiled renderer
+* Buffer renderer with tiling
 * Worker
 * Multiple canvases in different workers
 * Sprite map animations with image render
