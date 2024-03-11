@@ -78,6 +78,7 @@ Buffer-canvases
 
 * Try smaller max size
 * Add "only draw changes" toggle to tiled renderer
+* Fix the image renderer
 * Buffer renderer with tiling
 * Worker
 * Multiple canvases in different workers
