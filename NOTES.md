@@ -19,6 +19,8 @@
 * When you start the page, sometimes there is a period where moving your mouse consumes 100% cpu and makes the canvas lag. Why? Who fucking knows! It goes away if you switch tab to YouTube for a moment...
 * The "only draw changes" is somewhat of a specific optimization if you think about it. The grid helps us a lot.
 * Synchronizing worker threads might add latency or tearing. Perhaps a toggleable synchronization step?
+* When we get up to a high fella-count, we actually have to be careful about performance in our loops. Stuff you normally don't think about, every math operation counts when you do it 500K times.
+* It seems like larger tiles = slower updates. But if there are no updates, the larger ones are faster, because we iterate through fewer of them?
 
 ## Rules/Requirements
 

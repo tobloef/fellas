@@ -143,39 +143,59 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 			return;
 		}
 
+		const totalColumns = this.displayContexts.length;
 		let canvasColumn = 0;
 		let canvasRow = 0;
 		let spriteColumn = -1;
 		let spriteRow = 0;
 
-		let ctx = this.displayContexts[canvasColumn][canvasRow];
-		let updateContext = false;
+		const width = spriteSet.width;
+		const height = spriteSet.height;
 
-		for (let i = 0; i < this.fellas.length; i++) {
+		let ctx = this.displayContexts[canvasColumn][canvasRow];
+		let contextNeedsUpdate = false;
+
+		// Prepare for some ugly logic, because we have to give a damn about performance here
+		let maxSpriteColumns;
+		let maxSpriteRows;
+
+		const updateContext = () => {
+			ctx = this.displayContexts[canvasColumn][canvasRow];
+			maxSpriteColumns = ctx.canvas.width / width;
+			maxSpriteRows = ctx.canvas.height / height;
+		}
+
+		updateContext();
+
+		const updateStuff = () => {
 			spriteColumn++;
 
-			if (spriteColumn === ctx.canvas.width / spriteSet.width) {
+			if (spriteColumn === maxSpriteColumns) {
 				spriteColumn = 0;
 				canvasColumn++;
-				updateContext = true;
-			}
+				contextNeedsUpdate = true;
 
-			if (canvasColumn === this.displayContexts.length) {
-				canvasColumn = 0;
-				spriteRow++;
-				updateContext = true;
-			}
+				if (canvasColumn === totalColumns) {
+					canvasColumn = 0;
+					spriteRow++;
+					contextNeedsUpdate = true;
 
-			if (spriteRow === ctx.canvas.height / spriteSet.height) {
-				spriteRow = 0;
-				canvasRow++;
-				updateContext = true;
-			}
+					if (spriteRow === maxSpriteRows) {
+						spriteRow = 0;
+						canvasRow++;
+						contextNeedsUpdate = true;
+					}
+				}
 
-			if (updateContext) {
-				ctx = this.displayContexts[canvasColumn][canvasRow];
-				updateContext = false;
+				if (contextNeedsUpdate) {
+					updateContext();
+					contextNeedsUpdate = false;
+				}
 			}
+		}
+
+		for (let i = 0; i < this.fellas.length; i++) {
+			updateStuff();
 
 			const fella = this.fellas[i];
 
@@ -189,10 +209,8 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 				continue;
 			}
 
-			const x = spriteColumn * spriteSet.width;
-			const y = spriteRow * spriteSet.height;
-			const width = spriteSet.width;
-			const height = spriteSet.height;
+			const x = spriteColumn * width;
+			const y = spriteRow * height;
 
 			ctx.clearRect(x, y, width, height);
 			ctx.drawImage(image, x, y, width, height);
