@@ -36,6 +36,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		const context = canvas.getContext('2d', { alpha: false, antialias: false });
 		context.imageSmoothingEnabled = false;
 		this.ctx = context;
+
+		this.updateDisplaySize();
 	}
 
 	setupFellas() {

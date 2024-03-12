@@ -102,8 +102,6 @@ Buffer-canvases
 
 ## TODO
 
-* Fix the image renderer
-* Buffer renderer with tiling
 * Worker
 * Multiple canvases in different workers
 * Sprite map animations with image render

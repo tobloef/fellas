@@ -193,7 +193,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
 		updateContext();
 
-		const updateStuff = () => {
+		const updateSpritePosition = () => {
 			spriteColumn++;
 
 			if (spriteColumn === maxSpriteColumns) {
@@ -221,7 +221,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		}
 
 		for (let i = 0; i < this.fellas.length; i++) {
-			updateStuff();
+			updateSpritePosition();
 
 			const fella = this.fellas[i];
 
