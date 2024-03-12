@@ -21,6 +21,24 @@
 * Synchronizing worker threads might add latency or tearing. Perhaps a toggleable synchronization step?
 * When we get up to a high fella-count, we actually have to be careful about performance in our loops. Stuff you normally don't think about, every math operation counts when you do it 500K times.
 * It seems like larger tiles = slower updates. But if there are no updates, the larger ones are faster, because we iterate through fewer of them?
+  * Doing a little experiment. X by X tiles with a total of Y by Y pixels. Every frame, fill a full rect with a random color.
+  * Where Y=20000, X=16 is laggy. Around 30 FPS and 70% GPU usage.
+  * X=8, 60 FPS. Around 35% GPU usage.
+  * X=4, 60 FPS. Around 30% CPU usage.
+  * X=2, 60 FPS. 5% CPU usage.
+  * I keep having to do the tab trick to make then stable.
+  * Maybe the tab trick makes the browser take priority somehow?
+  * Going up to X=21000 makes the performance drop very sharply. With Y=2 it's 70-100% CPU utilization.
+  * Going down to X=16384.
+  * Y=1, 30%, 60 FPS.
+  * Doesn't change much as you increase Y, but at 32 it is CPU bottlenecked again at least and starts hovering around 30 FPS.
+  * Conclusion: Doing large operations on a few large canvases is better than doing it on many smaller.
+* A similar experiment, drawing small rects on larger tiles. It seems like it's faster doing X writes to 1 canvas than doing 1 write to X canvases.
+  * Especially as the canvas size increases.
+* What about a middle ground, doing a lot of smaller writes.
+  * For 20K size and 16 subs, doing random-tile writes is slow, whereas doing repeating writes is fast.
+  * For smaller amount of subs, the difference becomes smaller, but still measurable.
+* Conclusion: Fewer drawing operations is better. Fewer updated canvases it better
 
 ## Rules/Requirements
 

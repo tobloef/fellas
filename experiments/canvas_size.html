@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Canvas Size Experiment</title>
+	<style>
+      html,
+      body {
+          height: 100%;
+          margin: 0;
+          box-sizing: border-box;
+          overflow: hidden;
+          background: black;
+      }
+
+      #container {
+          height: 100vh;
+          width: 100vw;
+          display: flex;
+          flex-direction: row;
+      }
+
+      .column {
+          display: flex;
+          flex-direction: column;
+      }
+
+      .tile {
+
+      }
+	</style>
+</head>
+<body>
+<div id="container"></div>
+<script type="text/javascript">
+	const totalWidth = 20000;
+	const totalHeight = 20000;
+	const subDivisions = 32;
+
+	const tileWidth = totalWidth / subDivisions;
+	const tileHeight = totalHeight / subDivisions;
+
+	const contexts = [];
+
+	const containerElement = document.querySelector('#container');
+	containerElement.style.transform = `scale(${1 / (totalHeight / 500)}) translate(${-totalWidth / 2}px, ${-totalHeight / 2}px)`;
+
+	for (let column = 0; column < subDivisions; column++) {
+		const columnElement = document.createElement('div');
+		columnElement.className = 'column';
+		contexts.push([]);
+		for (let row = 0; row < subDivisions; row++) {
+			const canvas = document.createElement('canvas');
+			canvas.className = 'tile';
+			canvas.width = tileWidth;
+			canvas.height = tileHeight;
+			columnElement.appendChild(canvas);
+
+			const context = canvas.getContext('2d', { alpha: false, antialias: false });
+			contexts[column][row] = context;
+		}
+		containerElement.appendChild(columnElement);
+	}
+
+	const width = 128;
+	const amount = 1;
+
+	const singleTileWrites = true
+
+	const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+	const loop = () => {
+		if (singleTileWrites) {
+			const column = randomInt(0, subDivisions - 1);
+			const row = randomInt(0, subDivisions - 1);
+			const context = contexts[column][row];
+			for (let i = 0; i < amount * (subDivisions * subDivisions); i++) {
+				context.fillStyle = randomColor();
+				const x = randomInt(0, tileWidth - width);
+				const y = randomInt(0, tileHeight - width);
+				context.fillRect(x, y, width, width);
+			}
+		} else {
+			for (let i = 0; i < amount; i++) {
+				for (let column = 0; column < subDivisions; column++) {
+					for (let row = 0; row < subDivisions; row++) {
+						const context = contexts[column][row];
+						context.fillStyle = randomColor();
+						const x = randomInt(0, tileWidth - width);
+						const y = randomInt(0, tileHeight - width);
+						context.fillRect(x, y, width, width);
+					}
+				}
+			}
+		}
+
+		// Debug
+		const context = contexts[contexts.length - 1][contexts[contexts.length - 1].length - 1];
+		context.fillStyle = randomColor();
+		context.fillRect(0, 0, 512, 512);
+
+		requestAnimationFrame(loop);
+	};
+
+	loop();
+
+	function randomColor() {
+		return `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+	}
+</script>
+</body>
+</html>
