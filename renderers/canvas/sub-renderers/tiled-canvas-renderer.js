@@ -10,6 +10,8 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	canvasesElement = null;
 	displayContexts = [];
 	images = {};
+	needsGlobalRedraw = false;
+	manual_redraw = false;
 
 	constructor(state, containerElement) {
 		super();
@@ -21,6 +23,17 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		this.setupImages();
 		this.setupCanvases();
 		this.setupFellas();
+
+		this.needsGlobalRedraw = true;
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'r') {
+				this.draw();
+			}
+			if (event.key === 'R') {
+				this.manual_redraw = !this.manual_redraw;
+			}
+		});
 	}
 
 	setupImages() {
@@ -119,8 +132,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		}
 	}
 
-	updateDisplaySize() {
-	}
+	updateDisplaySize() {}
 
 	updateCamera() {
 		const { offset, scale } = this.state.camera;
@@ -132,7 +144,9 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		this.swapFellaVariations();
 		this.swapFellaAnimations();
 
-		this.draw();
+		if (!this.manual_redraw) {
+			this.draw();
+		}
 	}
 
 	draw() {
@@ -141,6 +155,17 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
 		if (this.images == null) {
 			return;
+		}
+
+		const doGlobalRedraw = !options.canvas.onlyDrawChanges || this.needsGlobalRedraw;
+
+		if (doGlobalRedraw) {
+			for (let column = 0; column < this.displayContexts.length; column++) {
+				for (let row = 0; row < this.displayContexts[column].length; row++) {
+					const context = this.displayContexts[column][row];
+					context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+				}
+			}
 		}
 
 		const totalColumns = this.displayContexts.length;
@@ -161,6 +186,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
 		const updateContext = () => {
 			ctx = this.displayContexts[canvasColumn][canvasRow];
+
 			maxSpriteColumns = ctx.canvas.width / width;
 			maxSpriteRows = ctx.canvas.height / height;
 		}
@@ -199,7 +225,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
 			const fella = this.fellas[i];
 
-			if (!fella.needsRedraw) {
+			if (!fella.needsRedraw && !doGlobalRedraw) {
 				continue;
 			}
 
@@ -212,11 +238,16 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 			const x = spriteColumn * width;
 			const y = spriteRow * height;
 
-			ctx.clearRect(x, y, width, height);
+			if (!doGlobalRedraw) {
+				ctx.clearRect(x, y, width, height);
+			}
+
 			ctx.drawImage(image, x, y, width, height);
 
 			fella.needsRedraw = false;
 		}
+
+		this.needsGlobalRedraw = false;
 	}
 
 	swapFellaVariations() {

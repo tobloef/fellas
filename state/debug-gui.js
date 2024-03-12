@@ -75,30 +75,14 @@ export function setupDebugGui(state) {
 		.name('Element Type');
 
 	folders[RendererOptions.CANVAS] = gui.addFolder('Canvas');
-
-	let onlyDrawChangesController = null;
-	const setupCanvasOptions = () => {
-		if (onlyDrawChangesController) {
-			onlyDrawChangesController.remove();
-			onlyDrawChangesController = null;
-		}
-
-		switch (options.canvas.offsetStrategy) {
-			case CanvasOffsetStrategy.DIRECT_CANVAS:
-				onlyDrawChangesController = folders[RendererOptions.CANVAS]
-					.add(options.canvas, 'onlyDrawChanges')
-					.name('Only draw changes')
-				break;
-		}
-	}
-
 	folders[RendererOptions.CANVAS].open();
 	folders[RendererOptions.CANVAS].hide();
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'offsetStrategy', Object.values(CanvasOffsetStrategy))
 		.name('Panning')
-		.onChange(setupCanvasOptions);
-	setupCanvasOptions();
+	folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'onlyDrawChanges')
+		.name('Only draw changes')
 
 	folders[RendererOptions.WEBGL] = gui.addFolder('WebGL');
 	folders[RendererOptions.WEBGL].open();
