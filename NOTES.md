@@ -45,6 +45,7 @@
     * We can't really change the amount of drawing ops.
     * We can decrease the amount of canvases, but at the cost of canvas resolution being larger.
     * So we have to balance these two parameters. Play around and see what yields the best results.
+* Performance with individual frames (vs GIFs) is much better! And performance with sprite sheets is a bit better than even that!
 
 ## Rules/Requirements
 
