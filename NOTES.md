@@ -102,7 +102,7 @@ Buffer-canvases
 
 ## TODO
 
-* Worker
-* Multiple canvases in different workers
 * Sprite map animations with image render
 * Render animated fellas on the canvas
+* Worker
+* Multiple canvases in different workers
