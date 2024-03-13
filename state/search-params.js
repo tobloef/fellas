@@ -10,6 +10,7 @@ const STATE_TO_SEARCH_PARAMS = {
 			offsetStrategy: string,
 			useUniqueImages: boolean,
 			elementType: string,
+			animationStrategy: string,
 		},
 		canvas: {
 			offsetStrategy: string,

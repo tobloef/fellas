@@ -1,5 +1,6 @@
 import {
 	CanvasOffsetStrategy,
+	ImgAnimationStrategy,
 	ImgElementType,
 	ImgOffsetStrategy,
 	RendererOptions,
@@ -70,9 +71,34 @@ export function setupDebugGui(state) {
 	folders[RendererOptions.IMAGE]
 		.add(options.img, 'useUniqueImages')
 		.name('Unique Images');
-	folders[RendererOptions.IMAGE]
+	let elementTypeController;
+	let animationStrategyController;
+	elementTypeController = folders[RendererOptions.IMAGE]
 		.add(options.img, 'elementType', Object.values(ImgElementType))
-		.name('Element Type');
+		.name('Element Type')
+		.onChange(() => {
+			if (
+				options.img.animationStrategy === ImgAnimationStrategy.SPRITE_SHEET &&
+				options.img.elementType !== ImgElementType.DIV
+			) {
+				alert("Can't use sprite sheet with image elements. Switching to individual frames.");
+				options.img.animationStrategy = ImgAnimationStrategy.FRAMES;
+				animationStrategyController.updateDisplay();
+			}
+		});
+	animationStrategyController = folders[RendererOptions.IMAGE]
+		.add(options.img, 'animationStrategy', Object.values(ImgAnimationStrategy))
+		.name('Animation')
+		.onChange(() => {
+			if (
+				options.img.animationStrategy === ImgAnimationStrategy.SPRITE_SHEET &&
+				options.img.elementType !== ImgElementType.DIV
+			) {
+				alert("Can't use sprite sheet with image elements. Switching to divs.");
+				options.img.elementType = ImgElementType.DIV;
+				elementTypeController.updateDisplay();
+			}
+		});
 
 	folders[RendererOptions.CANVAS] = gui.addFolder('Canvas');
 	folders[RendererOptions.CANVAS].open();

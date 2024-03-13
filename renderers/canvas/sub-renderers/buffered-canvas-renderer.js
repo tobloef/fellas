@@ -42,8 +42,7 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		const spriteSet = SpriteSets[this.state.options.spriteSet];
 
 		for (const variation of spriteSet.variations) {
-			const stillLSrcFunc = spriteSet.assets.still;
-			const src = stillLSrcFunc(variation);
+			const src = spriteSet.assets.still[variation];
 
 			const image = new Image();
 			image.src = src;

@@ -2,6 +2,7 @@ import { AbstractRenderer } from '../abstract-renderer.js';
 import { randomChoice } from '../../utils/random.js';
 import { SpriteSets } from '../../state/sprite-sets.js';
 import {
+	ImgAnimationStrategy,
 	ImgElementType,
 	ImgOffsetStrategy,
 } from '../../state/options.js';
@@ -13,6 +14,7 @@ export class ImageRenderer extends AbstractRenderer {
 	fellas = [];
 	animationFrame = null;
 	fellasElement = null;
+	lastUpdateTime = performance.now();
 
 	constructor(state, containerElement) {
 		super();
@@ -35,6 +37,7 @@ export class ImageRenderer extends AbstractRenderer {
 			'options.img.offsetStrategy',
 			'options.img.useUniqueImages',
 			'options.img.elementType',
+			'options.img.animationStrategy',
 		], this.setup.bind(this));
 	}
 
@@ -57,6 +60,9 @@ export class ImageRenderer extends AbstractRenderer {
 			const fella = {
 				isAnimated: options.isAnimatedByDefault,
 				variation: randomChoice(spriteSet.variations),
+				frame: 0,
+				timeOnFrame: 0,
+				needsSrcUpdate: true,
 			};
 
 			switch (options.img.elementType) {
@@ -74,35 +80,118 @@ export class ImageRenderer extends AbstractRenderer {
 					throw new Error(`Unknown element type "${options.img.elementType}".`);
 			}
 
-			this.updateFellaSrc(fella, spriteSet);
-
 			this.fellasElement.appendChild(fella.element);
 			this.fellas.push(fella);
 		}
+
+		this.updateImages();
 	}
 
-	updateFellaSrc(fella, spriteSet) {
-		const options = this.state.options;
+	updateImages() {
+		const manuallyAnimating = this.state.options.img.animationStrategy !== ImgAnimationStrategy.GIF;
 
-		const srcFunc = fella.isAnimated
-			? spriteSet.assets.animated
-			: spriteSet.assets.still;
+		const updateTime = performance.now();
+		const deltaTime = updateTime - this.lastUpdateTime;
+		this.lastUpdateTime = updateTime;
 
-		let src = srcFunc(fella.variation);
-		if (options.img.useUniqueImages) {
+		const spriteSet = SpriteSets[this.state.options.spriteSet];
+		// For performance reasons, don't access the options object directly in the loop.
+		const srcUpdateOptions = {
+			animationStrategy: this.state.options.img.animationStrategy,
+			useUniqueImages: this.state.options.img.useUniqueImages,
+			elementType: this.state.options.img.elementType,
+			spriteSet,
+		}
+
+		if (this.state.options.img.animationStrategy === ImgAnimationStrategy.SPRITE_SHEET) {
+			srcUpdateOptions.spriteSheetCoordinates = [];
+			for (let frame = 0; frame < spriteSet.frames; frame++) {
+				const x = (frame % spriteSet.spriteSheetDimensions.columns) * spriteSet.width;
+				const y = Math.floor(frame / spriteSet.spriteSheetDimensions.columns) * spriteSet.height;
+				srcUpdateOptions.spriteSheetCoordinates[frame] = { x, y };
+			}
+		}
+
+		for (const fella of this.fellas) {
+			if (manuallyAnimating && fella.isAnimated) {
+				fella.timeOnFrame += deltaTime;
+				if (fella.timeOnFrame > spriteSet.frameDuration) {
+					const addedFrames = Math.floor(fella.timeOnFrame / spriteSet.frameDuration);
+					fella.timeOnFrame = fella.timeOnFrame % spriteSet.frameDuration;
+					fella.frame = (fella.frame + addedFrames) % spriteSet.frames;
+					fella.needsSrcUpdate = true;
+				}
+			}
+
+			if (fella.needsSrcUpdate) {
+				this.updateFellaSrc(fella, srcUpdateOptions);
+				fella.needsSrcUpdate = false;
+			}
+		}
+	}
+
+	updateFellaSrc(fella, options) {
+		if (!fella.isAnimated) {
+			if (options.animationStrategy === ImgAnimationStrategy.SPRITE_SHEET) {
+				fella.element.style.backgroundImage = null;
+				fella.element.style.backgroundSize = null;
+				fella.element.style.backgroundRepeat = null;
+				fella.element.style.backgroundPosition = null;
+				fella.currentSpriteSheet = null;
+			}
+			this.updateFellaSrcSingleImage(fella, options);
+			return;
+		}
+
+		switch (options.animationStrategy) {
+			case ImgAnimationStrategy.GIF:
+				this.updateFellaSrcSingleImage(fella, options);
+				break;
+			case ImgAnimationStrategy.FRAMES:
+				const src = options.spriteSet.assets.frame[fella.variation][fella.frame];
+				this.setElementSrc(fella, options, src);
+				break;
+			case ImgAnimationStrategy.SPRITE_SHEET:
+				this.updateFellaSrcSpriteSheet(fella, options);
+				break;
+		}
+	}
+
+	updateFellaSrcSingleImage(fella, options) {
+		let src = fella.isAnimated
+			? options.spriteSet.assets.animated[fella.variation]
+			: options.spriteSet.assets.still[fella.variation];
+
+		if (options.useUniqueImages) {
 			src += `?${Math.random()}`;
 		}
 
-		switch (options.img.elementType) {
-			case ImgElementType.IMG:
-				fella.element.src = src;
-				break;
-			case ImgElementType.DIV:
-				fella.element.style.backgroundImage = `url(${src})`;
-				break;
-			default:
-				throw new Error(`Unknown element type "${options.img.elementType}".`);
+		this.setElementSrc(fella, options, src);
+	}
+
+	setElementSrc(fella, options, src) {
+		if (options.elementType === ImgElementType.IMG) {
+			fella.element.src = src;
+		} else if (options.elementType === ImgElementType.DIV) {
+			fella.element.style.backgroundImage = `url(${src})`;
 		}
+	}
+
+	updateFellaSrcSpriteSheet(fella, options) {
+			if (fella.currentSpriteSheet !== fella.variation) {
+				if (fella.currentSpriteSheet == null) {
+					const spriteSheetWidth = options.spriteSet.width * options.spriteSet.spriteSheetDimensions.columns;
+					const spriteSheetHeight = options.spriteSet.height * options.spriteSet.spriteSheetDimensions.rows;
+					fella.element.style.backgroundRepeat = 'no-repeat';
+					fella.element.style.backgroundSize = `${spriteSheetWidth}px ${spriteSheetHeight}px`;
+				}
+				const src = options.spriteSet.assets.spriteSheet[fella.variation];
+				fella.element.style.backgroundImage = `url(${src})`;
+				fella.currentSpriteSheet = fella.variation;
+		}
+
+		const {x, y} = options.spriteSheetCoordinates[fella.frame];
+		fella.element.style.backgroundPosition = `-${x}px -${y}px`;
 	}
 
 	updateDisplaySize() {
@@ -138,6 +227,8 @@ export class ImageRenderer extends AbstractRenderer {
 	loop() {
 		this.swapFellaVariations();
 		this.swapFellaAnimations();
+		this.updateImages();
+
 		this.animationFrame = requestAnimationFrame(this.loop.bind(this));
 	}
 
@@ -154,19 +245,21 @@ export class ImageRenderer extends AbstractRenderer {
 		for (let i = 0; i < options.variationChangesPerFrame; i++) {
 			const fella = randomChoice(this.fellas);
 			fella.variation = randomChoice(spriteSet.variations);
-			this.updateFellaSrc(fella, spriteSet);
+			fella.frame = 0;
+			fella.timeOnFrame = 0;
+			fella.needsSrcUpdate = true;
 		}
 	}
 
 	swapFellaAnimations() {
 		const options = this.state.options;
 
-		const spriteSet = SpriteSets[options.spriteSet];
-
 		for (let i = 0; i < options.animationChangesPerFrame; i++) {
 			const fella = randomChoice(this.fellas);
 			fella.isAnimated = !fella.isAnimated;
-			this.updateFellaSrc(fella, spriteSet);
+			fella.frame = 0;
+			fella.timeOnFrame = 0;
+			fella.needsSrcUpdate = true;
 		}
 	}
 }

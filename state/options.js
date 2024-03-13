@@ -15,6 +15,12 @@ export const ImgOffsetStrategy = {
 	TRANSLATE: 'Translate',
 };
 
+export const ImgAnimationStrategy = {
+	GIF: 'GIF',
+	FRAMES: "Individual Frames",
+	SPRITE_SHEET: 'Sprite Sheet',
+}
+
 export const CanvasOffsetStrategy = {
 	DIRECT_CANVAS: 'Direct to canvas',
 	CSS_TRANSFORM: 'CSS transform',
@@ -37,6 +43,7 @@ export const DEFAULT_OPTIONS = {
 		offsetStrategy: ImgOffsetStrategy.POSITION,
 		useUniqueImages: false,
 		elementType: ImgElementType.IMG,
+		animationStrategy: ImgAnimationStrategy.GIF,
 	},
 	canvas: {
 		offsetStrategy: CanvasOffsetStrategy.DIRECT_CANVAS,
