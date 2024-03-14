@@ -148,7 +148,7 @@ export class ImageRenderer extends AbstractRenderer {
 				this.updateFellaSrcSingleImage(fella, options);
 				break;
 			case ImgAnimationStrategy.FRAMES:
-				const src = options.spriteSet.assets.frame[fella.variation][fella.frame];
+				const src = options.spriteSet.assets.frames[fella.variation][fella.frame];
 				this.setElementSrc(fella, options, src);
 				break;
 			case ImgAnimationStrategy.SPRITE_SHEET:
@@ -160,7 +160,7 @@ export class ImageRenderer extends AbstractRenderer {
 	updateFellaSrcSingleImage(fella, options) {
 		let src = fella.isAnimated
 			? options.spriteSet.assets.animated[fella.variation]
-			: options.spriteSet.assets.still[fella.variation];
+			: options.spriteSet.assets.stills[fella.variation];
 
 		if (options.useUniqueImages) {
 			src += `?${Math.random()}`;
@@ -185,7 +185,7 @@ export class ImageRenderer extends AbstractRenderer {
 					fella.element.style.backgroundRepeat = 'no-repeat';
 					fella.element.style.backgroundSize = `${spriteSheetWidth}px ${spriteSheetHeight}px`;
 				}
-				const src = options.spriteSet.assets.spriteSheet[fella.variation];
+				const src = options.spriteSet.assets.spriteSheets[fella.variation];
 				fella.element.style.backgroundImage = `url(${src})`;
 				fella.currentSpriteSheet = fella.variation;
 		}

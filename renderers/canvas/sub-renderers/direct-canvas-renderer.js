@@ -2,6 +2,7 @@ import { AbstractCanvasSubRenderer } from '../abstract-canvas-sub-renderer.js';
 import { SpriteSets } from '../../../state/sprite-sets.js';
 import { randomChoice } from '../../../utils/random.js';
 import { countToRowsAndColumns } from '../../../utils/count-to-rows-and-columns.js';
+import {CanvasFrameType} from "../../../state/options.js";
 
 export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	containerElement = null;
@@ -53,6 +54,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	draw() {
 		const { options, camera } = this.state;
 		const spriteSet = SpriteSets[options.spriteSet];
+		const frameType = options.canvas.frameType;
 
 		if (this.images == null) {
 			return;
@@ -75,7 +77,16 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 				continue;
 			}
 
-			const image = this.images[fella.variation];
+			let image;
+			if (fella.isAnimated) {
+				if (frameType === CanvasFrameType.INDIVIDUAL_IMAGES) {
+					image = this.images.frames[fella.variation][fella.frame];
+				} else if (frameType === CanvasFrameType.SPRITE_SHEET) {
+					image = this.images.spriteSheets[fella.variation];
+				}
+			} else {
+				image = this.images.stills[fella.variation];
+			}
 
 			if (image == null) {
 				continue;
@@ -96,13 +107,27 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 				this.ctx.clearRect(x, y, width, height);
 			}
 
-			this.ctx.drawImage(
-				image,
-				x,
-				y,
-				width,
-				height,
-			);
+			if (fella.isAnimated && frameType === CanvasFrameType.SPRITE_SHEET) {
+				this.ctx.drawImage(
+					image,
+					this.spriteSheetCoordinates[fella.frame].x,
+					this.spriteSheetCoordinates[fella.frame].y,
+					spriteSet.width,
+					spriteSet.height,
+					x,
+					y,
+					width,
+					height,
+				);
+			} else {
+				this.ctx.drawImage(
+					image,
+					x,
+					y,
+					width,
+					height,
+				);
+			}
 
 			fella.needsRedraw = false;
 		}

@@ -5,30 +5,30 @@ export const SpriteSets = {
 		width: 64,
 		height: 64,
 		frames: 12,
-		frameDuration: (1/10) * 1000,
+		frameDuration: 1000 * (1/10),
 		variations: [ 'green', 'red', 'purple', 'yellow' ],
 		spriteSheetDimensions: { rows: 3, columns: 4 },
 		assetGenerators: {
-			still: (variation) => `assets/froggy/froggy_${variation}/tile000.png`,
+			stills: (variation) => `assets/froggy/froggy_${variation}/tile000.png`,
 			animated: (variation) => `assets/froggy/froggy_${variation}.gif`,
-			spriteSheet: (variation) => `assets/froggy/froggy_${variation}.png`,
-			frame: (variation, frame) => `assets/froggy/froggy_${variation}/tile${String(frame).padStart(3, '0')}.png`,
+			spriteSheets: (variation) => `assets/froggy/froggy_${variation}.png`,
+			frames: (variation, frame) => `assets/froggy/froggy_${variation}/tile${String(frame).padStart(3, '0')}.png`,
 		},
 	},
 };
 
-Object.entries(SpriteSets).forEach(([ key, value ]) => {
-	value.assets = {
-		still: {},
+Object.values(SpriteSets).forEach((spriteSet) => {
+	spriteSet.assets = {
+		stills: {},
 		animated: {},
-		spriteSheet: {},
-		frame: {},
+		spriteSheets: {},
+		frames: {},
 	};
 
-	value.variations.forEach((variation) => {
-		value.assets.still[variation] = value.assetGenerators.still(variation);
-		value.assets.animated[variation] = value.assetGenerators.animated(variation);
-		value.assets.spriteSheet[variation] = value.assetGenerators.spriteSheet(variation);
-		value.assets.frame[variation] = Array.from({ length: value.frames }, (_, i) => value.assetGenerators.frame(variation, i));
+	spriteSet.variations.forEach((variation) => {
+		spriteSet.assets.stills[variation] = spriteSet.assetGenerators.stills(variation);
+		spriteSet.assets.animated[variation] = spriteSet.assetGenerators.animated(variation);
+		spriteSet.assets.spriteSheets[variation] = spriteSet.assetGenerators.spriteSheets(variation);
+		spriteSet.assets.frames[variation] = Array.from({ length: spriteSet.frames }, (_, i) => spriteSet.assetGenerators.frames(variation, i));
 	});
 });
