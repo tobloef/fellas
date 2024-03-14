@@ -21,15 +21,20 @@ export const ImgAnimationStrategy = {
 	SPRITE_SHEET: 'Sprite Sheet',
 }
 
+export const ImgElementType = {
+	IMG: 'Image',
+	DIV: 'Div',
+};
+
 export const CanvasOffsetStrategy = {
 	DIRECT_CANVAS: 'Direct to canvas',
 	CSS_TRANSFORM: 'CSS transform',
 	BUFFER_CANVAS: 'Buffer canvas',
 };
 
-export const ImgElementType = {
-	IMG: 'Image',
-	DIV: 'Div',
+export const CanvasFrameType = {
+	INDIVIDUAL_IMAGES: 'Individual Images',
+	SPRITE_SHEET: 'Sprite Sheet',
 };
 
 export const DEFAULT_OPTIONS = {
@@ -48,6 +53,7 @@ export const DEFAULT_OPTIONS = {
 	canvas: {
 		offsetStrategy: CanvasOffsetStrategy.DIRECT_CANVAS,
 		onlyDrawChanges: false,
+		frameType: CanvasFrameType.INDIVIDUAL_IMAGES,
 		useWorker: false,
 		useMultipleWorkers: false,
 	},

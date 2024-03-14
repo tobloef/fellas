@@ -1,4 +1,5 @@
 import {
+	CanvasFrameType,
 	CanvasOffsetStrategy,
 	ImgAnimationStrategy,
 	ImgElementType,
@@ -109,6 +110,9 @@ export function setupDebugGui(state) {
 	folders[RendererOptions.CANVAS]
 		.add(options.canvas, 'onlyDrawChanges')
 		.name('Only draw changes')
+	elementTypeController = folders[RendererOptions.CANVAS]
+		.add(options.canvas, 'frameType', Object.values(CanvasFrameType))
+		.name('Frame Type');
 
 	folders[RendererOptions.WEBGL] = gui.addFolder('WebGL');
 	folders[RendererOptions.WEBGL].open();

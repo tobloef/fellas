@@ -15,6 +15,7 @@ const STATE_TO_SEARCH_PARAMS = {
 		canvas: {
 			offsetStrategy: string,
 			onlyDrawChanges: boolean,
+			frameType: string,
 			useWorker: boolean,
 			useMultipleWorkers: boolean,
 		},
