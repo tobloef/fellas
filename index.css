@@ -36,7 +36,6 @@ body {
     image-rendering: pixelated;
     user-select: none;
     font-size: 0;
-    display: block;
 }
 
 .transform-column {

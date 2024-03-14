@@ -46,6 +46,12 @@
     * We can decrease the amount of canvases, but at the cost of canvas resolution being larger.
     * So we have to balance these two parameters. Play around and see what yields the best results.
 * Performance with individual frames (vs GIFs) is much better! And performance with sprite sheets is a bit better than even that!
+* No noticeable difference between individual frames and sprite sheets for canvas.
+* For CPU bound stuff (all animated, 10000 fellas, 100 changes):
+  * Buffer is slower than direct, which is slower than tiled.
+  * Buffer has to do more work, so of course it's a slower.
+  * My guess is that tiled is faster because even though it is a larger canvas, it doesn't have to as much math, due to lack of scaling.
+  * Direct of course becomes much slower than buffer when you pan around.
 
 ## Rules/Requirements
 
@@ -103,6 +109,7 @@ Buffer-canvases
 
 ## TODO
 
+* Max canvas size selection
 * Worker support for direct canvas
 * Worker support for tiled canvas
 * Worker support for buffer canvas

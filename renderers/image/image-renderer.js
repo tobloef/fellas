@@ -195,6 +195,7 @@ export class ImageRenderer extends AbstractRenderer {
     const spriteSet = SpriteSets[options.spriteSet];
     const { rowsWithOverflow, columns } = countToRowsAndColumns(options.count);
     this.fellasElement.className = 'transform-wrapper';
+    this.fellasElement.style.display = "block";
     this.fellasElement.style.width = `${columns * spriteSet.width}px`;
     this.fellasElement.style.height = `${rowsWithOverflow * spriteSet.height}px`;
   }

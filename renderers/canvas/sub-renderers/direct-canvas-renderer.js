@@ -67,6 +67,9 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer {
     let width = spriteSet.width * camera.scale;
     let height = spriteSet.height * camera.scale;
 
+    let offsetX = camera.offset.x * camera.scale;
+    let offsetY = camera.offset.y * camera.scale;
+
     const count = options.count;
     const onlyDrawChanges = options.canvas.onlyDrawChanges;
 
@@ -100,8 +103,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer {
       x *= width;
       y *= height;
 
-      x += camera.offset.x * camera.scale;
-      y += camera.offset.y * camera.scale;
+      x += offsetX;
+      y += offsetY;
 
       if (onlyDrawChanges) {
         this.ctx.clearRect(x, y, width, height);

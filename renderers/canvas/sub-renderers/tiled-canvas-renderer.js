@@ -41,6 +41,7 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 
     this.canvasesElement = document.createElement('div');
     this.canvasesElement.className = 'transform-wrapper';
+    this.canvasesElement.style.display = 'flex';
     this.canvasesElement.style.width = `${neededWidth}px`;
     this.canvasesElement.style.height = `${neededHeight}px`;
     this.containerElement.appendChild(this.canvasesElement);
