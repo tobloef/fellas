@@ -103,7 +103,6 @@ Buffer-canvases
 
 ## TODO
 
-* Render animated fellas on the canvas (tiled)
-* Render animated fellas on the canvas (buffered)
-* Worker
-* Multiple canvases in different workers
+* Worker support for direct canvas
+* Worker support for tiled canvas
+* Worker support for buffer canvas

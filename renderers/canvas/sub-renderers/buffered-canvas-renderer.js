@@ -3,6 +3,7 @@ import { MAX_CANVAS_SIZE } from '../../../utils/max-canvas-size.js';
 import { SpriteSets } from '../../../state/sprite-sets.js';
 import { AbstractCanvasSubRenderer } from '../abstract-canvas-sub-renderer.js';
 import { randomChoice } from '../../../utils/random.js';
+import {CanvasFrameType} from "../../../state/options.js";
 
 export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	containerElement = null;
@@ -12,6 +13,7 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	needsGlobalRedraw = false;
 	images = {};
 	fellas = [];
+	spriteSheetCoordinates = [];
 
 	constructor(state, containerElement) {
 		super();
@@ -100,6 +102,7 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	drawBuffers() {
 		const { options } = this.state;
 		const spriteSet = SpriteSets[options.spriteSet];
+		const frameType = options.canvas.frameType;
 
 		if (this.images == null) {
 			return;
@@ -177,7 +180,16 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 				continue;
 			}
 
-			const image = this.images[fella.variation];
+			let image;
+			if (fella.isAnimated) {
+				if (frameType === CanvasFrameType.INDIVIDUAL_IMAGES) {
+					image = this.images.frames[fella.variation][fella.frame];
+				} else if (frameType === CanvasFrameType.SPRITE_SHEET) {
+					image = this.images.spriteSheets[fella.variation];
+				}
+			} else {
+				image = this.images.stills[fella.variation];
+			}
 
 			if (image == null) {
 				continue;
@@ -190,7 +202,21 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
 				ctx.clearRect(x, y, width, height);
 			}
 
-			ctx.drawImage(image, x, y, width, height);
+			if (fella.isAnimated && frameType === CanvasFrameType.SPRITE_SHEET) {
+				ctx.drawImage(
+					image,
+					this.spriteSheetCoordinates[fella.frame].x,
+					this.spriteSheetCoordinates[fella.frame].y,
+					spriteSet.width,
+					spriteSet.height,
+					x,
+					y,
+					width,
+					height,
+				);
+			} else {
+				ctx.drawImage(image, x, y, width, height);
+			}
 
 			fella.needsRedraw = false;
 		}

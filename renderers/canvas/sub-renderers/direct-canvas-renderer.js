@@ -11,6 +11,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	needsGlobalRedraw = false;
 	images = {};
 	fellas = [];
+	spriteSheetCoordinates = [];
 
 	constructor(state, containerElement) {
 		super();
