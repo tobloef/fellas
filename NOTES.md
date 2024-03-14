@@ -109,5 +109,10 @@ Buffer-canvases
 
 ## TODO
 
+* Write some notes on worker support for direct canvas
 * Worker support for tiled canvas
+* Multi-worker support for tiled canvas
+* Write some notes on worker support for tiled canvas
 * Worker support for buffer canvas
+* Multiple-worker support for buffer canvas
+* Write some notes on worker support for buffer canvas
