@@ -109,7 +109,6 @@ Buffer-canvases
 
 ## TODO
 
-* Max canvas size selection
 * Worker support for direct canvas
 * Worker support for tiled canvas
 * Worker support for buffer canvas
