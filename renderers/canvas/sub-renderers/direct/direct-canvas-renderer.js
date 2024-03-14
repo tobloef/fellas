@@ -1,5 +1,5 @@
-import {SpriteSets} from '../../../../state/sprite-sets.js';
-import {countToRowsAndColumns} from '../../../../utils/count-to-rows-and-columns.js';
+import {SpriteSets} from "../../../../state/sprite-sets.js";
+import {countToRowsAndColumns} from "../../../../utils/count-to-rows-and-columns.js";
 import {CanvasFrameType} from "../../../../state/options.js";
 
 export class DirectCanvasSubRenderer {
@@ -10,49 +10,168 @@ export class DirectCanvasSubRenderer {
   images = {};
   fellas = [];
   spriteSheetCoordinates = [];
+  worker = null;
+
+  autoDrawWorker = true;
 
   constructor(state, containerElement) {
     this.state = state;
     this.containerElement = containerElement;
   }
 
-  setupCanvases() {
+  setup() {
     this.containerElement?.replaceChildren();
     this.ctx = null;
 
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = 0;
     canvas.height = 0;
-    canvas.style.imageRendering = 'pixelated';
+    canvas.style.imageRendering = "pixelated";
     this.containerElement.appendChild(canvas);
 
-    const context = canvas.getContext('2d', { alpha: false, antialias: false });
-    context.imageSmoothingEnabled = false;
-    this.ctx = context;
+    this.fellas = [];
+
+    if (this.state.options.canvas.useWorker) {
+      this.setupWorker(canvas);
+    } else {
+      const context = canvas.getContext("2d", { alpha: false, antialias: false });
+      context.imageSmoothingEnabled = false;
+      this.ctx = context;
+    }
 
     this.updateDisplaySize();
+  }
+
+  setupWorker(canvas) {
+    this.worker = new Worker(new URL("./worker.js", import.meta.url));
+
+    const offscreenCanvas = canvas.transferControlToOffscreen();
+
+    const { options, camera } = this.state;
+    const { frameType, onlyDrawChanges } = options.canvas;
+    const spriteSet = SpriteSets[options.spriteSet];
+
+    this.worker.postMessage({
+      type: "setup",
+      canvas: offscreenCanvas,
+      spriteSet: {
+        width: spriteSet.width,
+        height: spriteSet.height,
+      },
+      camera: {
+        offset: {
+          x: camera.offset.x,
+          y: camera.offset.y,
+        },
+        scale: camera.scale,
+      },
+      frameType,
+      onlyDrawChanges,
+      spriteSheetCoordinates: this.spriteSheetCoordinates,
+      autoDraw: this.autoDrawWorker,
+    }, [offscreenCanvas]);
+  }
+
+  setImage(image, imageType, variation, frame) {
+    if (this.state.options.canvas.useWorker) {
+      this.worker.postMessage({
+        type: "setImage",
+        image,
+        imageType,
+        variation,
+        frame,
+      });
+    } else {
+      switch (imageType) {
+        case "still":
+          if (this.images.stills == null) {
+            this.images.stills = {};
+          }
+          this.images.stills[variation] = image;
+          break;
+        case "frame":
+          if (this.images.frames == null) {
+            this.images.frames = {};
+          }
+          if (this.images.frames[variation] == null) {
+            this.images.frames[variation] = [];
+          }
+          this.images.frames[variation][frame] = image;
+          break;
+        case "spriteSheet":
+          if (this.images.spriteSheets == null) {
+            this.images.spriteSheets = {};
+          }
+          this.images.spriteSheets[variation] = image;
+          break;
+      }
+      this.needsGlobalRedraw = true;
+    }
+  }
+
+  updateFellas(updatedFellas) {
+    if (this.state.options.canvas.useWorker) {
+      this.worker.postMessage({
+        type: "updateFellas",
+        updatedFellas,
+      });
+    } else {
+      Object.entries(updatedFellas).forEach(([id, fella]) => {
+        if (this.fellas[id] == null) {
+          this.fellas[id] = fella;
+        } else {
+          Object.assign(this.fellas[id], fella);
+        }
+      });
+    }
   }
 
   updateDisplaySize() {
     const screenSize = this.state.screenSize;
 
-    this.ctx.canvas.style.width = `100%`;
-    this.ctx.canvas.style.height = `100%`;
-    this.ctx.canvas.width = screenSize.width;
-    this.ctx.canvas.height = screenSize.height;
-    this.ctx.imageSmoothingEnabled = false;
-
-    this.needsGlobalRedraw = true;
+    if (this.state.options.canvas.useWorker) {
+      this.worker.postMessage({
+        type: "updateDisplaySize",
+        width: screenSize.width,
+        height: screenSize.height,
+      });
+    } else {
+      this.ctx.canvas.style.width = "100%";
+      this.ctx.canvas.style.height = "100%";
+      this.ctx.canvas.width = screenSize.width;
+      this.ctx.canvas.height = screenSize.height;
+      this.ctx.imageSmoothingEnabled = false;
+      this.needsGlobalRedraw = true;
+    }
   }
 
   updateCamera() {
-    this.needsGlobalRedraw = true;
+    if (this.state.options.canvas.useWorker) {
+      this.worker.postMessage({
+        type: "updateCamera",
+        offset: {
+          x: this.state.camera.offset.x,
+          y: this.state.camera.offset.y,
+        },
+        scale: this.state.camera.scale,
+      });
+    } else {
+      this.needsGlobalRedraw = true;
+    }
   }
 
   draw() {
     const { options, camera } = this.state;
     const spriteSet = SpriteSets[options.spriteSet];
     const frameType = options.canvas.frameType;
+    const useWorker = options.canvas.useWorker;
+
+    if (useWorker) {
+      if (!this.autoDrawWorker) {
+        this.worker.postMessage({ type: "draw" });
+      }
+      return;
+    }
 
     if (this.images == null) {
       return;
@@ -81,12 +200,12 @@ export class DirectCanvasSubRenderer {
       let image;
       if (fella.isAnimated) {
         if (frameType === CanvasFrameType.INDIVIDUAL_IMAGES) {
-          image = this.images.frames[fella.variation][fella.frame];
+          image = this.images?.frames?.[fella.variation]?.[fella.frame];
         } else if (frameType === CanvasFrameType.SPRITE_SHEET) {
-          image = this.images.spriteSheets[fella.variation];
+          image = this.images?.spriteSheets?.[fella.variation];
         }
       } else {
-        image = this.images.stills[fella.variation];
+        image = this.images?.stills?.[fella.variation];
       }
 
       if (image == null) {

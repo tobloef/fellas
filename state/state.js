@@ -1,5 +1,5 @@
-import {DEFAULT_OPTIONS} from './options.js';
-import {DEFAULT_CAMERA} from './camera.js';
+import {DEFAULT_OPTIONS} from "./options.js";
+import {DEFAULT_CAMERA} from "./camera.js";
 
 const DEFAULT_STATE = {
   options: DEFAULT_OPTIONS,
@@ -24,7 +24,7 @@ function getRecursivelyObservableProxyHandler(
   return {
     get(target, key) {
       const path = parentPath ? `${parentPath}.${key}` : key;
-      if (parentPath == null && key === 'observe') {
+      if (parentPath == null && key === "observe") {
         return (observedPathOrPaths, callback) => {
           const observedPaths = Array.isArray(observedPathOrPaths)
             ? observedPathOrPaths
@@ -55,7 +55,7 @@ function getRecursivelyObservableProxyHandler(
         };
       }
 
-      const isObject = typeof target[key] === 'object' && target[key] !== null;
+      const isObject = typeof target[key] === "object" && target[key] !== null;
 
       if (isObject) {
         return new Proxy(target[key], getRecursivelyObservableProxyHandler(unobservedProps, path, eventTarget));
@@ -69,7 +69,7 @@ function getRecursivelyObservableProxyHandler(
       target[key] = newValue;
 
       const fullPath = parentPath ? `${parentPath}.${key}` : key;
-      const parts = fullPath.split('.');
+      const parts = fullPath.split(".");
 
       [fullPath, ...parts].forEach((path) => {
         const isObservable = !unobservedProps.includes(path);

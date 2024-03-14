@@ -1,7 +1,7 @@
-import {CanvasFrameType, CanvasOffsetStrategy} from '../../state/options.js';
-import {DirectCanvasSubRenderer} from './sub-renderers/direct/direct-canvas-renderer.js';
-import {BufferedCanvasSubRenderer} from './sub-renderers/buffered/buffered-canvas-renderer.js';
-import {TiledCanvasSubRenderer} from './sub-renderers/tiled/tiled-canvas-renderer.js';
+import {CanvasFrameType, CanvasOffsetStrategy} from "../../state/options.js";
+import {DirectCanvasSubRenderer} from "./sub-renderers/direct/direct-canvas-renderer.js";
+import {BufferedCanvasSubRenderer} from "./sub-renderers/buffered/buffered-canvas-renderer.js";
+import {TiledCanvasSubRenderer} from "./sub-renderers/tiled/tiled-canvas-renderer.js";
 import {SpriteSets} from "../../state/sprite-sets.js";
 import {randomChoice} from "../../utils/random.js";
 
@@ -23,22 +23,24 @@ export class CanvasRenderer {
   }
 
   setupEventListeners() {
-    this.state.observe('screenSize', this.updateDisplaySize.bind(this));
-    this.state.observe('camera.offset', this.updateCamera.bind(this));
+    this.state.observe("screenSize", this.updateDisplaySize.bind(this));
+    this.state.observe("camera.offset", this.updateCamera.bind(this));
     this.state.observe([
-      'options.count',
-      'options.spriteSet',
-      'options.isAnimatedByDefault',
-      'options.canvas.maxCanvasSize',
-      'options.canvas.offsetStrategy',
-      'options.canvas.frameType',
+      "options.count",
+      "options.spriteSet",
+      "options.isAnimatedByDefault",
+      "options.canvas.maxCanvasSize",
+      "options.canvas.offsetStrategy",
+      "options.canvas.frameType",
+      "options.canvas.useWorker",
+      "options.canvas.onlyDrawChanges",
     ], this.setup.bind(this));
 
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'r') {
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "r") {
         this.subRenderer.draw();
       }
-      if (event.key === 'R') {
+      if (event.key === "R") {
         this.manualRedraw = !this.manualRedraw;
       }
     });
@@ -62,7 +64,7 @@ export class CanvasRenderer {
     }
 
     this.setupImages();
-    this.subRenderer.setupCanvases();
+    this.subRenderer.setup();
     this.setupFellas();
     this.updateAnimations()
     this.updateDisplaySize();
@@ -72,41 +74,35 @@ export class CanvasRenderer {
   }
 
   setupImages() {
-    this.subRenderer.images = {};
-
     const spriteSet = SpriteSets[this.state.options.spriteSet];
 
-    const loadImageInto = (src, container, key) => {
+    const loadImageInto = (src, imageType, variation, frame) => {
       const image = new Image();
       image.src = src;
       image.onload = async () => {
-        container[key] = await createImageBitmap(image);
-        this.subRenderer.needsGlobalRedraw = true;
+        const bitmap = await createImageBitmap(image);
+        this.subRenderer.setImage(bitmap, imageType, variation, frame);
       };
     }
 
-    this.subRenderer.images.stills = {};
     for (const variation of spriteSet.variations) {
       const src = spriteSet.assets.stills[variation];
-      loadImageInto(src, this.subRenderer.images.stills, variation);
+      loadImageInto(src, "still", variation);
     }
 
     if (this.state.options.canvas.frameType === CanvasFrameType.INDIVIDUAL_IMAGES) {
-      this.subRenderer.images.frames = {};
       for (const variation of spriteSet.variations) {
-        this.subRenderer.images.frames[variation] = [];
         for (let frame = 0; frame < spriteSet.frames; frame++) {
           const src = spriteSet.assets.frames[variation][frame];
-          loadImageInto(src, this.subRenderer.images.frames[variation], frame);
+          loadImageInto(src, "frame", variation, frame);
         }
       }
     }
 
     if (this.state.options.canvas.frameType === CanvasFrameType.SPRITE_SHEET) {
-      this.subRenderer.images.spriteSheets = {};
       for (const variation of spriteSet.variations) {
         const src = spriteSet.assets.spriteSheets[variation];
-        loadImageInto(src, this.subRenderer.images.spriteSheets, variation);
+        loadImageInto(src, "spriteSheet", variation);
       }
     }
 
@@ -123,7 +119,7 @@ export class CanvasRenderer {
   }
 
   setupFellas() {
-    this.subRenderer.fellas = [];
+    const updatedFellas = {};
 
     const { spriteSet, count, isAnimatedByDefault } = this.state.options;
 
@@ -136,8 +132,10 @@ export class CanvasRenderer {
         timeOnFrame: 0,
       };
 
-      this.subRenderer.fellas.push(fella);
+      updatedFellas[i] = fella;
     }
+
+    this.subRenderer.updateFellas(updatedFellas);
   }
 
   updateDisplaySize() {
@@ -185,24 +183,41 @@ export class CanvasRenderer {
   swapFellaVariations() {
     const { spriteSet, variationChangesPerFrame } = this.state.options;
 
+    let updatedFellas = {};
+
     for (let i = 0; i < variationChangesPerFrame; i++) {
-      const fella = randomChoice(this.subRenderer.fellas);
-      fella.variation = randomChoice(SpriteSets[spriteSet].variations);
-      fella.needsRedraw = true;
-      fella.frame = 0;
-      fella.timeOnFrame = 0;
+      const fellaIndex = randomInt(0, this.subRenderer.fellas.length - 1);
+      updatedFellas[fellaIndex] = {
+        variation: randomChoice(SpriteSets[spriteSet].variations),
+        frame: 0,
+        timeOnFrame: 0,
+        needsRedraw: true,
+      };
+    }
+
+    if (variationChangesPerFrame > 0) {
+      this.subRenderer.updateFellas(updatedFellas);
     }
   }
 
   swapFellaAnimations() {
     const { animationChangesPerFrame } = this.state.options;
 
+    let updatedFellas = {};
+
     for (let i = 0; i < animationChangesPerFrame; i++) {
-      const fella = randomChoice(this.subRenderer.fellas);
-      fella.isAnimated = !fella.isAnimated;
-      fella.needsRedraw = true;
-      fella.frame = 0;
-      fella.timeOnFrame = 0;
+      const fellaIndex = randomInt(0, this.subRenderer.fellas.length - 1);
+      const fella = this.subRenderer.fellas[fellaIndex];
+      updatedFellas[fellaIndex] = {
+        isAnimated: !fella.isAnimated,
+        frame: 0,
+        timeOnFrame: 0,
+        needsRedraw: true,
+      };
+    }
+
+    if (animationChangesPerFrame > 0) {
+      this.subRenderer.updateFellas(updatedFellas);
     }
   }
 

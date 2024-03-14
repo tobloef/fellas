@@ -1,5 +1,5 @@
-import {countToRowsAndColumns} from '../../../../utils/count-to-rows-and-columns.js';
-import {SpriteSets} from '../../../../state/sprite-sets.js';
+import {countToRowsAndColumns} from "../../../../utils/count-to-rows-and-columns.js";
+import {SpriteSets} from "../../../../state/sprite-sets.js";
 import {CanvasFrameType} from "../../../../state/options.js";
 
 export class BufferedCanvasSubRenderer {
@@ -17,17 +17,17 @@ export class BufferedCanvasSubRenderer {
     this.containerElement = containerElement;
   }
 
-  setupCanvases() {
+  setup() {
     this.containerElement?.replaceChildren();
     this.bufferContexts = [];
 
-    const displayCanvas = document.createElement('canvas');
+    const displayCanvas = document.createElement("canvas");
     displayCanvas.width = 0;
     displayCanvas.height = 0;
-    displayCanvas.style.imageRendering = 'pixelated';
+    displayCanvas.style.imageRendering = "pixelated";
     this.containerElement.appendChild(displayCanvas);
 
-    const displayContext = displayCanvas.getContext('2d', { alpha: false, antialias: false });
+    const displayContext = displayCanvas.getContext("2d", { alpha: false, antialias: false });
     displayContext.imageSmoothingEnabled = false;
     this.displayContext = displayContext;
 
@@ -62,7 +62,7 @@ export class BufferedCanvasSubRenderer {
         canvas.width = spriteColumnsForCanvas * spriteSet.width;
         canvas.height = spriteRowsForCanvas * spriteSet.height;
 
-        const context = canvas.getContext('2d', { alpha: false, antialias: false });
+        const context = canvas.getContext("2d", { alpha: false, antialias: false });
         context.imageSmoothingEnabled = false;
 
         this.bufferContexts[column][row] = context;
@@ -80,8 +80,8 @@ export class BufferedCanvasSubRenderer {
   updateDisplaySize() {
     const screenSize = this.state.screenSize;
 
-    this.displayContext.canvas.style.width = `100%`;
-    this.displayContext.canvas.style.height = `100%`;
+    this.displayContext.canvas.style.width = "100%";
+    this.displayContext.canvas.style.height = "100%";
     this.displayContext.canvas.width = screenSize.width;
     this.displayContext.canvas.height = screenSize.height;
     this.displayContext.imageSmoothingEnabled = false;

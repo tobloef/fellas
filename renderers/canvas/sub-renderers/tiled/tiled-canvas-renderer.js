@@ -1,5 +1,5 @@
-import {countToRowsAndColumns} from '../../../../utils/count-to-rows-and-columns.js';
-import {SpriteSets} from '../../../../state/sprite-sets.js';
+import {countToRowsAndColumns} from "../../../../utils/count-to-rows-and-columns.js";
+import {SpriteSets} from "../../../../state/sprite-sets.js";
 import {CanvasFrameType} from "../../../../state/options.js";
 
 export class TiledCanvasSubRenderer {
@@ -17,7 +17,7 @@ export class TiledCanvasSubRenderer {
     this.containerElement = containerElement;
   }
 
-  setupCanvases() {
+  setup() {
     this.containerElement?.replaceChildren();
     this.displayContexts = [];
 
@@ -37,9 +37,9 @@ export class TiledCanvasSubRenderer {
     let spriteColumnsRemaining = neededColumns;
     let spriteRowsRemaining = neededRows;
 
-    this.canvasesElement = document.createElement('div');
-    this.canvasesElement.className = 'transform-wrapper';
-    this.canvasesElement.style.display = 'flex';
+    this.canvasesElement = document.createElement("div");
+    this.canvasesElement.className = "transform-wrapper";
+    this.canvasesElement.style.display = "flex";
     this.canvasesElement.style.width = `${neededWidth}px`;
     this.canvasesElement.style.height = `${neededHeight}px`;
     this.containerElement.appendChild(this.canvasesElement);
@@ -50,12 +50,12 @@ export class TiledCanvasSubRenderer {
     while (spriteColumnsRemaining > 0) {
       this.displayContexts[column] = [];
 
-      const columnElement = document.createElement('div');
-      columnElement.className = 'transform-column';
+      const columnElement = document.createElement("div");
+      columnElement.className = "transform-column";
       this.canvasesElement.appendChild(columnElement);
 
       while (spriteRowsRemaining > 0) {
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         columnElement.appendChild(canvas);
 
         const spriteColumnsForCanvas = Math.min(spriteColumnsRemaining, maxSpriteColumns);
@@ -63,11 +63,11 @@ export class TiledCanvasSubRenderer {
 
         canvas.width = spriteColumnsForCanvas * spriteSet.width;
         canvas.height = spriteRowsForCanvas * spriteSet.height;
-        canvas.style.imageRendering = 'pixelated';
+        canvas.style.imageRendering = "pixelated";
         canvas.style.width = `${canvas.width}px`;
         canvas.style.height = `${canvas.height}px`;
 
-        const context = canvas.getContext('2d', { alpha: false, antialias: false });
+        const context = canvas.getContext("2d", { alpha: false, antialias: false });
         context.imageSmoothingEnabled = false;
 
         this.displayContexts[column][row] = context;

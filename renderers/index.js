@@ -1,8 +1,8 @@
-import {RendererOptions} from '../state/options.js';
-import {ImageRenderer} from './image/image-renderer.js';
-import {CanvasRenderer} from './canvas/canvas-renderer.js';
-import {WebglRenderer} from './webgl/webgl-renderer.js';
-import {WebgpuRenderer} from './webgpu/webgpu-renderer.js';
+import {RendererOptions} from "../state/options.js";
+import {ImageRenderer} from "./image/image-renderer.js";
+import {CanvasRenderer} from "./canvas/canvas-renderer.js";
+import {WebglRenderer} from "./webgl/webgl-renderer.js";
+import {WebgpuRenderer} from "./webgpu/webgpu-renderer.js";
 
 const Renderers = {
   [RendererOptions.IMAGE]: ImageRenderer,
@@ -21,5 +21,5 @@ export function setupRenderers(state, containerElement) {
   }
 
   reinitialize();
-  state.observe('options.renderer', reinitialize);
+  state.observe("options.renderer", reinitialize);
 }

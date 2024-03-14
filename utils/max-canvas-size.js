@@ -5,7 +5,7 @@ const FILL_COLOR = [255, 0, 0, 255];
 
 export function findMaxCanvasSize() {
   const offscreenCanvas = new OffscreenCanvas(1, 1);
-  const ctx = offscreenCanvas.getContext('2d', { willReadFrequently: true });
+  const ctx = offscreenCanvas.getContext("2d", { willReadFrequently: true });
 
   let size = 1;
   let lowerBound = 1;
@@ -69,7 +69,7 @@ function checkSize(ctx, size) {
   ctx.canvas.width = size;
   ctx.canvas.height = size;
 
-  ctx.fillStyle = `rgba(${FILL_COLOR.join(',')})`;
+  ctx.fillStyle = `rgba(${FILL_COLOR.join(",")})`;
   ctx.fillRect(0, 0, size, size);
 
   const data = ctx.getImageData(size - 1, size - 1, 1, 1).data;

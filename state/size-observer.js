@@ -32,7 +32,7 @@ function observeSize(
     }
   });
 
-  resizeObserver.observe(element, { box: 'device-pixel-content-box' });
+  resizeObserver.observe(element, { box: "device-pixel-content-box" });
 
   const cleanup = () => {
     resizeObserver.disconnect();

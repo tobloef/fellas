@@ -1,42 +1,42 @@
 import {MAX_CANVAS_SIZE, MIN_CANVAS_SIZE} from "../utils/max-canvas-size.js";
 
 export const RendererOptions = {
-  IMAGE: 'Image',
-  CANVAS: 'Canvas',
-  WEBGL: 'WebGL',
-  WEBGPU: 'WebGPU',
+  IMAGE: "Image",
+  CANVAS: "Canvas",
+  WEBGL: "WebGL",
+  WEBGPU: "WebGPU",
 };
 
 export const SpriteSetOptions = {
-  FROG: 'Frog (64x64)',
-  TEST: 'Test (250x250)',
+  FROG: "Frog (64x64)",
+  TEST: "Test (250x250)",
 };
 
 export const ImgOffsetStrategy = {
-  POSITION: 'Position',
-  TRANSLATE: 'Translate',
+  POSITION: "Position",
+  TRANSLATE: "Translate",
 };
 
 export const ImgAnimationStrategy = {
-  GIF: 'GIF',
+  GIF: "GIF",
   FRAMES: "Individual Frames",
-  SPRITE_SHEET: 'Sprite Sheet',
+  SPRITE_SHEET: "Sprite Sheet",
 }
 
 export const ImgElementType = {
-  IMG: 'Image',
-  DIV: 'Div',
+  IMG: "Image",
+  DIV: "Div",
 };
 
 export const CanvasOffsetStrategy = {
-  DIRECT_CANVAS: 'Direct to canvas',
-  CSS_TRANSFORM: 'CSS transform',
-  BUFFER_CANVAS: 'Buffer canvas',
+  DIRECT_CANVAS: "Direct to canvas",
+  CSS_TRANSFORM: "CSS transform",
+  BUFFER_CANVAS: "Buffer canvas",
 };
 
 export const CanvasFrameType = {
-  INDIVIDUAL_IMAGES: 'Individual Images',
-  SPRITE_SHEET: 'Sprite Sheet',
+  INDIVIDUAL_IMAGES: "Individual Images",
+  SPRITE_SHEET: "Sprite Sheet",
 };
 
 export const MaxCanvasSize = {};

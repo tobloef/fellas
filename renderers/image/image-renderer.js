@@ -1,7 +1,7 @@
-import {randomChoice} from '../../utils/random.js';
-import {SpriteSets} from '../../state/sprite-sets.js';
-import {ImgAnimationStrategy, ImgElementType, ImgOffsetStrategy,} from '../../state/options.js';
-import {countToRowsAndColumns} from '../../utils/count-to-rows-and-columns.js';
+import {randomChoice} from "../../utils/random.js";
+import {SpriteSets} from "../../state/sprite-sets.js";
+import {ImgAnimationStrategy, ImgElementType, ImgOffsetStrategy,} from "../../state/options.js";
+import {countToRowsAndColumns} from "../../utils/count-to-rows-and-columns.js";
 
 export class ImageRenderer {
   containerElement = null;
@@ -21,16 +21,16 @@ export class ImageRenderer {
   }
 
   setupStateObservers() {
-    this.state.observe('screenSize', this.updateDisplaySize.bind(this));
-    this.state.observe('camera.offset', this.updateCamera.bind(this));
+    this.state.observe("screenSize", this.updateDisplaySize.bind(this));
+    this.state.observe("camera.offset", this.updateCamera.bind(this));
     this.state.observe([
-      'options.count',
-      'options.spriteSet',
-      'options.isAnimatedByDefault',
-      'options.img.offsetStrategy',
-      'options.img.useUniqueImages',
-      'options.img.elementType',
-      'options.img.animationStrategy',
+      "options.count",
+      "options.spriteSet",
+      "options.isAnimatedByDefault",
+      "options.img.offsetStrategy",
+      "options.img.useUniqueImages",
+      "options.img.elementType",
+      "options.img.animationStrategy",
     ], this.setup.bind(this));
   }
 
@@ -40,7 +40,7 @@ export class ImageRenderer {
     const options = this.state.options;
     const spriteSet = SpriteSets[options.spriteSet];
 
-    this.fellasElement = document.createElement('div');
+    this.fellasElement = document.createElement("div");
     this.containerElement.appendChild(this.fellasElement);
 
     this.updateDisplaySize();
@@ -60,12 +60,12 @@ export class ImageRenderer {
 
       switch (options.img.elementType) {
         case ImgElementType.IMG:
-          fella.element = document.createElement('img');
+          fella.element = document.createElement("img");
           fella.element.draggable = false;
           break;
         case ImgElementType.DIV:
-          fella.element = document.createElement('div');
-          fella.element.className = 'image-div';
+          fella.element = document.createElement("div");
+          fella.element.className = "image-div";
           fella.element.style.width = `${spriteSet.width}px`;
           fella.element.style.height = `${spriteSet.height}px`;
           break;
@@ -175,7 +175,7 @@ export class ImageRenderer {
       if (fella.currentSpriteSheet == null) {
         const spriteSheetWidth = options.spriteSet.width * options.spriteSet.spriteSheetDimensions.columns;
         const spriteSheetHeight = options.spriteSet.height * options.spriteSet.spriteSheetDimensions.rows;
-        fella.element.style.backgroundRepeat = 'no-repeat';
+        fella.element.style.backgroundRepeat = "no-repeat";
         fella.element.style.backgroundSize = `${spriteSheetWidth}px ${spriteSheetHeight}px`;
       }
       const src = options.spriteSet.assets.spriteSheets[fella.variation];
@@ -191,7 +191,7 @@ export class ImageRenderer {
     const options = this.state.options;
     const spriteSet = SpriteSets[options.spriteSet];
     const { rowsWithOverflow, columns } = countToRowsAndColumns(options.count);
-    this.fellasElement.className = 'transform-wrapper';
+    this.fellasElement.className = "transform-wrapper";
     this.fellasElement.style.display = "block";
     this.fellasElement.style.width = `${columns * spriteSet.width}px`;
     this.fellasElement.style.height = `${rowsWithOverflow * spriteSet.height}px`;
@@ -210,8 +210,8 @@ export class ImageRenderer {
       case ImgOffsetStrategy.TRANSLATE:
         const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
         this.fellasElement.style.transform = transform;
-        this.fellasElement.style.left = '0';
-        this.fellasElement.style.top = '0';
+        this.fellasElement.style.left = "0";
+        this.fellasElement.style.top = "0";
         break;
       default:
         throw new Error(`Unknown offset strategy "${options.img.offsetStrategy}".`);

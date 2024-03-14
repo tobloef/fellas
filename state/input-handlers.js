@@ -1,21 +1,21 @@
-import {clamp} from '../utils/clamp.js';
+import {clamp} from "../utils/clamp.js";
 
 export function setupInputHandlers(state, containerElement) {
   const camera = state.camera;
 
-  containerElement.addEventListener('mousedown', () => {
+  containerElement.addEventListener("mousedown", () => {
     camera.isDragging = true;
   });
 
-  containerElement.addEventListener('mouseup', () => {
+  containerElement.addEventListener("mouseup", () => {
     camera.isDragging = false;
   });
 
-  containerElement.addEventListener('mouseleave', () => {
+  containerElement.addEventListener("mouseleave", () => {
     camera.isDragging = false;
   });
 
-  containerElement.addEventListener('mousemove', (e) => {
+  containerElement.addEventListener("mousemove", (e) => {
     if (!camera.isDragging) {
       return;
     }
@@ -46,7 +46,7 @@ export function setupInputHandlers(state, containerElement) {
     };
   });
 
-  containerElement.addEventListener('wheel', (e) => {
+  containerElement.addEventListener("wheel", (e) => {
     e.preventDefault();
 
     const delta = e.deltaY * camera.zoomSensitivity;

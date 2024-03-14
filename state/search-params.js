@@ -44,7 +44,7 @@ export function setStateFromSearchParams(state) {
       }
 
       const parentRef = flattenedKeyToParentRef(state, key);
-      const lastKey = key.split('.').pop();
+      const lastKey = key.split(".").pop();
 
       parentRef[lastKey] = value;
     });
@@ -94,15 +94,15 @@ function searchParamsToUrl(searchParams) {
 }
 
 function setUrl(url) {
-  window.history.replaceState({}, '', url);
+  window.history.replaceState({}, "", url);
 }
 
-function flattenNestedObject(obj, parentPath = '') {
+function flattenNestedObject(obj, parentPath = "") {
   const result = {};
 
   for (const [key, value] of Object.entries(obj)) {
     const path = parentPath ? `${parentPath}.${key}` : key;
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
       Object.assign(result, flattenNestedObject(value, path));
     } else {
       result[path] = value;
@@ -113,7 +113,7 @@ function flattenNestedObject(obj, parentPath = '') {
 }
 
 function flattenedKeyToParentRef(obj, key) {
-  const keys = key.split('.').slice(0, -1);
+  const keys = key.split(".").slice(0, -1);
   let ref = obj;
   for (const key of keys) {
     ref = ref[key];
@@ -122,7 +122,7 @@ function flattenedKeyToParentRef(obj, key) {
 }
 
 function flattenedKeyToValue(obj, key) {
-  const keys = key.split('.');
+  const keys = key.split(".");
   let value = obj;
   for (const key of keys) {
     value = value[key];
@@ -135,7 +135,7 @@ function string(string) {
 }
 
 function boolean(string) {
-  return string ? string === 'true' : string;
+  return string ? string === "true" : string;
 }
 
 function integer(string) {
