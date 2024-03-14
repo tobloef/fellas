@@ -1,7 +1,7 @@
 import {CanvasFrameType, CanvasOffsetStrategy} from '../../state/options.js';
-import {DirectCanvasSubRenderer} from './sub-renderers/direct-canvas-renderer.js';
-import {BufferedCanvasSubRenderer} from './sub-renderers/buffered-canvas-renderer.js';
-import {TiledCanvasSubRenderer} from './sub-renderers/tiled-canvas-renderer.js';
+import {DirectCanvasSubRenderer} from './sub-renderers/direct/direct-canvas-renderer.js';
+import {BufferedCanvasSubRenderer} from './sub-renderers/buffered/buffered-canvas-renderer.js';
+import {TiledCanvasSubRenderer} from './sub-renderers/tiled/tiled-canvas-renderer.js';
 import {SpriteSets} from "../../state/sprite-sets.js";
 import {randomChoice} from "../../utils/random.js";
 

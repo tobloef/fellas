@@ -1,12 +1,12 @@
-import {countToRowsAndColumns} from '../../../utils/count-to-rows-and-columns.js';
-import {SpriteSets} from '../../../state/sprite-sets.js';
-import {CanvasFrameType} from "../../../state/options.js";
+import {countToRowsAndColumns} from '../../../../utils/count-to-rows-and-columns.js';
+import {SpriteSets} from '../../../../state/sprite-sets.js';
+import {CanvasFrameType} from "../../../../state/options.js";
 
-export class TiledCanvasSubRenderer {
+export class BufferedCanvasSubRenderer {
   containerElement = null;
   state = null;
-  canvasesElement = null;
-  displayContexts = [];
+  displayContext = null;
+  bufferContexts = [];
   needsGlobalRedraw = false;
   images = {};
   fellas = [];
@@ -19,7 +19,19 @@ export class TiledCanvasSubRenderer {
 
   setupCanvases() {
     this.containerElement?.replaceChildren();
-    this.displayContexts = [];
+    this.bufferContexts = [];
+
+    const displayCanvas = document.createElement('canvas');
+    displayCanvas.width = 0;
+    displayCanvas.height = 0;
+    displayCanvas.style.imageRendering = 'pixelated';
+    this.containerElement.appendChild(displayCanvas);
+
+    const displayContext = displayCanvas.getContext('2d', { alpha: false, antialias: false });
+    displayContext.imageSmoothingEnabled = false;
+    this.displayContext = displayContext;
+
+    this.updateDisplaySize();
 
     const spriteSet = SpriteSets[this.state.options.spriteSet];
     const maxCanvasSize = this.state.options.canvas.maxCanvasSize;
@@ -29,48 +41,31 @@ export class TiledCanvasSubRenderer {
       rowsWithOverflow: neededRows,
     } = countToRowsAndColumns(this.state.options.count);
 
-    const neededWidth = neededColumns * spriteSet.width;
-    const neededHeight = neededRows * spriteSet.height;
     const maxSpriteColumns = Math.floor(maxCanvasSize / spriteSet.width);
     const maxSpriteRows = Math.floor(maxCanvasSize / spriteSet.height);
 
     let spriteColumnsRemaining = neededColumns;
     let spriteRowsRemaining = neededRows;
 
-    this.canvasesElement = document.createElement('div');
-    this.canvasesElement.className = 'transform-wrapper';
-    this.canvasesElement.style.display = 'flex';
-    this.canvasesElement.style.width = `${neededWidth}px`;
-    this.canvasesElement.style.height = `${neededHeight}px`;
-    this.containerElement.appendChild(this.canvasesElement);
-
     let column = 0;
     let row = 0;
 
     while (spriteColumnsRemaining > 0) {
-      this.displayContexts[column] = [];
-
-      const columnElement = document.createElement('div');
-      columnElement.className = 'transform-column';
-      this.canvasesElement.appendChild(columnElement);
+      this.bufferContexts[column] = [];
 
       while (spriteRowsRemaining > 0) {
-        const canvas = document.createElement('canvas');
-        columnElement.appendChild(canvas);
+        const canvas = new OffscreenCanvas(0, 0);
 
         const spriteColumnsForCanvas = Math.min(spriteColumnsRemaining, maxSpriteColumns);
         const spriteRowsForCanvas = Math.min(spriteRowsRemaining, maxSpriteRows);
 
         canvas.width = spriteColumnsForCanvas * spriteSet.width;
         canvas.height = spriteRowsForCanvas * spriteSet.height;
-        canvas.style.imageRendering = 'pixelated';
-        canvas.style.width = `${canvas.width}px`;
-        canvas.style.height = `${canvas.height}px`;
 
         const context = canvas.getContext('2d', { alpha: false, antialias: false });
         context.imageSmoothingEnabled = false;
 
-        this.displayContexts[column][row] = context;
+        this.bufferContexts[column][row] = context;
 
         spriteRowsRemaining -= spriteRowsForCanvas;
         row++;
@@ -83,15 +78,26 @@ export class TiledCanvasSubRenderer {
   }
 
   updateDisplaySize() {
+    const screenSize = this.state.screenSize;
+
+    this.displayContext.canvas.style.width = `100%`;
+    this.displayContext.canvas.style.height = `100%`;
+    this.displayContext.canvas.width = screenSize.width;
+    this.displayContext.canvas.height = screenSize.height;
+    this.displayContext.imageSmoothingEnabled = false;
+
+    this.needsGlobalRedraw = true;
   }
 
   updateCamera() {
-    const { offset, scale } = this.state.camera;
-    const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
-    this.canvasesElement.style.transform = transform;
   }
 
   draw() {
+    this.drawBuffers();
+    this.drawDisplay();
+  }
+
+  drawBuffers() {
     const { options } = this.state;
     const spriteSet = SpriteSets[options.spriteSet];
     const frameType = options.canvas.frameType;
@@ -103,15 +109,15 @@ export class TiledCanvasSubRenderer {
     const doGlobalRedraw = !options.canvas.onlyDrawChanges || this.needsGlobalRedraw;
 
     if (doGlobalRedraw) {
-      for (let column = 0; column < this.displayContexts.length; column++) {
-        for (let row = 0; row < this.displayContexts[column].length; row++) {
-          const context = this.displayContexts[column][row];
+      for (let column = 0; column < this.bufferContexts.length; column++) {
+        for (let row = 0; row < this.bufferContexts[column].length; row++) {
+          const context = this.bufferContexts[column][row];
           context.clearRect(0, 0, context.canvas.width, context.canvas.height);
         }
       }
     }
 
-    const totalColumns = this.displayContexts.length;
+    const totalColumns = this.bufferContexts.length;
     let canvasColumn = 0;
     let canvasRow = 0;
     let spriteColumn = -1;
@@ -120,7 +126,7 @@ export class TiledCanvasSubRenderer {
     const width = spriteSet.width;
     const height = spriteSet.height;
 
-    let ctx = this.displayContexts[canvasColumn][canvasRow];
+    let ctx = this.bufferContexts[canvasColumn][canvasRow];
     let contextNeedsUpdate = false;
 
     // Prepare for some ugly logic, because we have to give a damn about performance here
@@ -128,7 +134,7 @@ export class TiledCanvasSubRenderer {
     let maxSpriteRows;
 
     const updateContext = () => {
-      ctx = this.displayContexts[canvasColumn][canvasRow];
+      ctx = this.bufferContexts[canvasColumn][canvasRow];
 
       maxSpriteColumns = ctx.canvas.width / width;
       maxSpriteRows = ctx.canvas.height / height;
@@ -216,7 +222,30 @@ export class TiledCanvasSubRenderer {
     this.needsGlobalRedraw = false;
   }
 
+  drawDisplay() {
+    this.displayContext.clearRect(0, 0, this.displayContext.canvas.width, this.displayContext.canvas.height);
+
+    const { camera: { offset, scale } } = this.state;
+
+    let x = offset.x * scale;
+    let y = offset.y * scale;
+    let w = 0;
+    let h = 0;
+
+    for (let column = 0; column < this.bufferContexts.length; column++) {
+      for (let row = 0; row < this.bufferContexts[column].length; row++) {
+        const context = this.bufferContexts[column][row];
+        w = context.canvas.width * scale;
+        h = context.canvas.height * scale;
+        this.displayContext.drawImage(context.canvas, x, y, w, h);
+        y += h;
+      }
+      y = offset.y * scale;
+      x += w;
+    }
+  }
+
   destroy() {
-    this.displayContexts = [];
+    this.bufferContexts = [];
   }
 }

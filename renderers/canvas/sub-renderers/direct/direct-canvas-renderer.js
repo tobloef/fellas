@@ -1,6 +1,6 @@
-import {SpriteSets} from '../../../state/sprite-sets.js';
-import {countToRowsAndColumns} from '../../../utils/count-to-rows-and-columns.js';
-import {CanvasFrameType} from "../../../state/options.js";
+import {SpriteSets} from '../../../../state/sprite-sets.js';
+import {countToRowsAndColumns} from '../../../../utils/count-to-rows-and-columns.js';
+import {CanvasFrameType} from "../../../../state/options.js";
 
 export class DirectCanvasSubRenderer {
   containerElement = null;
