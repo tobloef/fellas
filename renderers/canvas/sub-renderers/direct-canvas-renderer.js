@@ -7,8 +7,9 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 	containerElement = null;
 	state = null;
 	ctx = null;
-	needsRedraw = false;
+	needsGlobalRedraw = false;
 	images = {};
+	fellas = [];
 
 	constructor(state, containerElement) {
 		super();
@@ -16,14 +17,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		this.containerElement = containerElement;
 	}
 
-	setup() {
-		this.setupImages();
-		this.setupCanvas();
-		this.setupFellas();
-		this.needsRedraw = true;
-	}
-
-	setupCanvas() {
+	setupCanvases() {
 		this.containerElement?.replaceChildren();
 		this.ctx = null;
 
@@ -40,39 +34,6 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		this.updateDisplaySize();
 	}
 
-	setupFellas() {
-		this.fellas = [];
-
-		const { spriteSet, count, isAnimatedByDefault } = this.state.options;
-
-		for (let i = 0; i < count; i++) {
-			const fella = {
-				isAnimated: isAnimatedByDefault,
-				variation: randomChoice(SpriteSets[spriteSet].variations),
-				needsRedraw: true,
-			};
-
-			this.fellas.push(fella);
-		}
-	}
-
-	setupImages() {
-		this.images = {};
-
-		const spriteSet = SpriteSets[this.state.options.spriteSet];
-
-		for (const variation of spriteSet.variations) {
-			const src = spriteSet.assets.still[variation]
-
-			const image = new Image();
-			image.src = src;
-			image.onload = async () => {
-				this.images[variation] = await createImageBitmap(image);
-				this.needsRedraw = true;
-			}
-		}
-	}
-
 	updateDisplaySize() {
 		const screenSize = this.state.screenSize;
 
@@ -82,18 +43,11 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		this.ctx.canvas.height = screenSize.height;
 		this.ctx.imageSmoothingEnabled = false;
 
-		this.needsRedraw = true;
+		this.needsGlobalRedraw = true;
 	}
 
 	updateCamera() {
-		this.needsRedraw = true;
-	}
-
-	loop() {
-		this.swapFellaVariations();
-		this.swapFellaAnimations();
-
-		this.draw();
+		this.needsGlobalRedraw = true;
 	}
 
 	draw() {
@@ -104,7 +58,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			return;
 		}
 
-		if (!options.canvas.onlyDrawChanges || this.needsRedraw) {
+		if (!options.canvas.onlyDrawChanges || this.needsGlobalRedraw) {
 			this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
 		}
 
@@ -117,7 +71,7 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 		for (let i = 0; i < this.fellas.length; i++) {
 			const fella = this.fellas[i];
 
-			if (onlyDrawChanges && !fella.needsRedraw && !this.needsRedraw) {
+			if (onlyDrawChanges && !fella.needsRedraw && !this.needsGlobalRedraw) {
 				continue;
 			}
 
@@ -153,30 +107,8 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer{
 			fella.needsRedraw = false;
 		}
 
-		this.needsRedraw = false;
+		this.needsGlobalRedraw = false;
 	}
 
-	destroy() {
-
-	}
-
-	swapFellaVariations() {
-		const { spriteSet, variationChangesPerFrame } = this.state.options;
-
-		for (let i = 0; i < variationChangesPerFrame; i++) {
-			const fella = randomChoice(this.fellas);
-			fella.variation = randomChoice(SpriteSets[spriteSet].variations);
-			fella.needsRedraw = true;
-		}
-	}
-
-	swapFellaAnimations() {
-		const { animationChangesPerFrame } = this.state.options;
-
-		for (let i = 0; i < animationChangesPerFrame; i++) {
-			const fella = randomChoice(this.fellas);
-			fella.isAnimated = !fella.isAnimated;
-			fella.needsRedraw = true;
-		}
-	}
+	destroy() {}
 }

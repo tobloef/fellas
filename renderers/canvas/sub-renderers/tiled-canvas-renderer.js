@@ -9,47 +9,14 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 	state = null;
 	canvasesElement = null;
 	displayContexts = [];
-	images = {};
 	needsGlobalRedraw = false;
-	manual_redraw = false;
+	images = {};
+	fellas = [];
 
 	constructor(state, containerElement) {
 		super();
 		this.state = state;
 		this.containerElement = containerElement;
-	}
-
-	setup() {
-		this.setupImages();
-		this.setupCanvases();
-		this.setupFellas();
-
-		this.needsGlobalRedraw = true;
-
-		document.addEventListener('keydown', (event) => {
-			if (event.key === 'r') {
-				this.draw();
-			}
-			if (event.key === 'R') {
-				this.manual_redraw = !this.manual_redraw;
-			}
-		});
-	}
-
-	setupImages() {
-		this.images = {};
-
-		const spriteSet = SpriteSets[this.state.options.spriteSet];
-
-		for (const variation of spriteSet.variations) {
-			const src = spriteSet.assets.still[variation];
-
-			const image = new Image();
-			image.src = src;
-			image.onload = async () => {
-				this.images[variation] = await createImageBitmap(image);
-			};
-		}
 	}
 
 	setupCanvases() {
@@ -115,37 +82,12 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		}
 	}
 
-	setupFellas() {
-		this.fellas = [];
-
-		const { spriteSet, count, isAnimatedByDefault } = this.state.options;
-
-		for (let i = 0; i < count; i++) {
-			const fella = {
-				isAnimated: isAnimatedByDefault,
-				variation: randomChoice(SpriteSets[spriteSet].variations),
-				needsRedraw: true,
-			};
-
-			this.fellas.push(fella);
-		}
-	}
-
 	updateDisplaySize() {}
 
 	updateCamera() {
 		const { offset, scale } = this.state.camera;
 		const transform = `scale(${scale}) translate(${offset.x}px, ${offset.y}px)`;
 		this.canvasesElement.style.transform = transform;
-	}
-
-	loop() {
-		this.swapFellaVariations();
-		this.swapFellaAnimations();
-
-		if (!this.manual_redraw) {
-			this.draw();
-		}
 	}
 
 	draw() {
@@ -247,26 +189,6 @@ export class TiledCanvasSubRenderer extends AbstractCanvasSubRenderer {
 		}
 
 		this.needsGlobalRedraw = false;
-	}
-
-	swapFellaVariations() {
-		const { spriteSet, variationChangesPerFrame } = this.state.options;
-
-		for (let i = 0; i < variationChangesPerFrame; i++) {
-			const fella = randomChoice(this.fellas);
-			fella.variation = randomChoice(SpriteSets[spriteSet].variations);
-			fella.needsRedraw = true;
-		}
-	}
-
-	swapFellaAnimations() {
-		const { animationChangesPerFrame } = this.state.options;
-
-		for (let i = 0; i < animationChangesPerFrame; i++) {
-			const fella = randomChoice(this.fellas);
-			fella.isAnimated = !fella.isAnimated;
-			fella.needsRedraw = true;
-		}
 	}
 
 	destroy() {

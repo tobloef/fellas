@@ -3,12 +3,15 @@ import { CanvasOffsetStrategy } from '../../state/options.js';
 import { DirectCanvasSubRenderer } from './sub-renderers/direct-canvas-renderer.js';
 import { BufferedCanvasSubRenderer } from './sub-renderers/buffered-canvas-renderer.js';
 import { TiledCanvasSubRenderer } from './sub-renderers/tiled-canvas-renderer.js';
+import {SpriteSets} from "../../state/sprite-sets.js";
+import {randomChoice} from "../../utils/random.js";
 
 export class CanvasRenderer extends AbstractRenderer {
 	subRenderer = null;
 	containerElement = null;
 	state = null;
 	animationFrame = null;
+	manualRedraw = false;
 
 	constructor(state, containerElement) {
 		super();
@@ -16,12 +19,12 @@ export class CanvasRenderer extends AbstractRenderer {
 		this.state = state;
 		this.containerElement = containerElement;
 
-		this.setupStateObservers();
+		this.setupEventListeners();
 		this.setup();
 		this.loop();
 	}
 
-	setupStateObservers() {
+	setupEventListeners() {
 		this.state.observe('screenSize', this.updateDisplaySize.bind(this));
 		this.state.observe('camera.offset', this.updateCamera.bind(this));
 		this.state.observe([
@@ -30,6 +33,11 @@ export class CanvasRenderer extends AbstractRenderer {
 			'options.isAnimatedByDefault',
 			'options.canvas.offsetStrategy',
 		], this.setup.bind(this));
+
+		document.addEventListener('keydown', (event) => {
+			if (event.key === 'r') { this.subRenderer.draw(); }
+			if (event.key === 'R') { this.manualRedraw = !this.manualRedraw; }
+		});
 	}
 
 	setup() {
@@ -49,9 +57,46 @@ export class CanvasRenderer extends AbstractRenderer {
 				throw new Error(`Unknown canvas offset strategy: ${this.state.options.canvas.offsetStrategy}`);
 		}
 
-		this.subRenderer.setup();
+		this.setupImages();
+		this.subRenderer.setupCanvases();
+		this.setupFellas();
 		this.updateDisplaySize();
 		this.updateCamera();
+
+		this.subRenderer.needsGlobalRedraw = true;
+	}
+
+	setupImages() {
+		this.subRenderer.images = {};
+
+		const spriteSet = SpriteSets[this.state.options.spriteSet];
+
+		for (const variation of spriteSet.variations) {
+			const src = spriteSet.assets.still[variation];
+
+			const image = new Image();
+			image.src = src;
+			image.onload = async () => {
+				this.subRenderer.images[variation] = await createImageBitmap(image);
+				this.subRenderer.needsGlobalRedraw = true;
+			};
+		}
+	}
+
+	setupFellas() {
+		this.subRenderer.fellas = [];
+
+		const { spriteSet, count, isAnimatedByDefault } = this.state.options;
+
+		for (let i = 0; i < count; i++) {
+			const fella = {
+				isAnimated: isAnimatedByDefault,
+				variation: randomChoice(SpriteSets[spriteSet].variations),
+				needsRedraw: true,
+			};
+
+			this.subRenderer.fellas.push(fella);
+		}
 	}
 
 	updateDisplaySize() {
@@ -63,8 +108,34 @@ export class CanvasRenderer extends AbstractRenderer {
 	}
 
 	loop() {
-		this.subRenderer.loop();
+		this.swapFellaVariations();
+		this.swapFellaAnimations();
+
+		if (!this.manualRedraw) {
+			this.subRenderer.draw();
+		}
+
 		this.animationFrame = requestAnimationFrame(this.loop.bind(this));
+	}
+
+	swapFellaVariations() {
+		const { spriteSet, variationChangesPerFrame } = this.state.options;
+
+		for (let i = 0; i < variationChangesPerFrame; i++) {
+			const fella = randomChoice(this.subRenderer.fellas);
+			fella.variation = randomChoice(SpriteSets[spriteSet].variations);
+			fella.needsRedraw = true;
+		}
+	}
+
+	swapFellaAnimations() {
+		const { animationChangesPerFrame } = this.state.options;
+
+		for (let i = 0; i < animationChangesPerFrame; i++) {
+			const fella = randomChoice(this.subRenderer.fellas);
+			fella.isAnimated = !fella.isAnimated;
+			fella.needsRedraw = true;
+		}
 	}
 
 	destroy() {
