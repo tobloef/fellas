@@ -1,3 +1,5 @@
+import {MAX_CANVAS_SIZE, MIN_CANVAS_SIZE} from "../utils/max-canvas-size.js";
+
 export const RendererOptions = {
   IMAGE: 'Image',
   CANVAS: 'Canvas',
@@ -37,6 +39,11 @@ export const CanvasFrameType = {
   SPRITE_SHEET: 'Sprite Sheet',
 };
 
+export const MaxCanvasSize = {};
+for (let size = MAX_CANVAS_SIZE; size >= MIN_CANVAS_SIZE; size /= 2) {
+  MaxCanvasSize[size] = size;
+}
+
 export const DEFAULT_OPTIONS = {
   renderer: RendererOptions.IMAGE,
   count: 1000,
@@ -51,6 +58,7 @@ export const DEFAULT_OPTIONS = {
     animationStrategy: ImgAnimationStrategy.GIF,
   },
   canvas: {
+    maxCanvasSize: MAX_CANVAS_SIZE,
     offsetStrategy: CanvasOffsetStrategy.DIRECT_CANVAS,
     onlyDrawChanges: false,
     frameType: CanvasFrameType.INDIVIDUAL_IMAGES,

@@ -1,9 +1,8 @@
-import {AbstractCanvasSubRenderer} from '../abstract-canvas-sub-renderer.js';
 import {SpriteSets} from '../../../state/sprite-sets.js';
 import {countToRowsAndColumns} from '../../../utils/count-to-rows-and-columns.js';
 import {CanvasFrameType} from "../../../state/options.js";
 
-export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer {
+export class DirectCanvasSubRenderer {
   containerElement = null;
   state = null;
   ctx = null;
@@ -13,7 +12,6 @@ export class DirectCanvasSubRenderer extends AbstractCanvasSubRenderer {
   spriteSheetCoordinates = [];
 
   constructor(state, containerElement) {
-    super();
     this.state = state;
     this.containerElement = containerElement;
   }

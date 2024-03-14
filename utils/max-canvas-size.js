@@ -82,4 +82,5 @@ function checkSize(ctx, size) {
   );
 }
 
-export const MAX_CANVAS_SIZE = findMaxCanvasSize() / 1;
+export const MIN_CANVAS_SIZE = 128;
+export const MAX_CANVAS_SIZE = findMaxCanvasSize();

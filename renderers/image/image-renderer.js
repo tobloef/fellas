@@ -1,10 +1,9 @@
-import {AbstractRenderer} from '../abstract-renderer.js';
 import {randomChoice} from '../../utils/random.js';
 import {SpriteSets} from '../../state/sprite-sets.js';
 import {ImgAnimationStrategy, ImgElementType, ImgOffsetStrategy,} from '../../state/options.js';
 import {countToRowsAndColumns} from '../../utils/count-to-rows-and-columns.js';
 
-export class ImageRenderer extends AbstractRenderer {
+export class ImageRenderer {
   containerElement = null;
   state = null;
   fellas = [];
@@ -13,8 +12,6 @@ export class ImageRenderer extends AbstractRenderer {
   lastUpdateTime = performance.now();
 
   constructor(state, containerElement) {
-    super();
-
     this.state = state;
     this.containerElement = containerElement;
 

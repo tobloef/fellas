@@ -1,10 +1,8 @@
 import {countToRowsAndColumns} from '../../../utils/count-to-rows-and-columns.js';
-import {MAX_CANVAS_SIZE} from '../../../utils/max-canvas-size.js';
 import {SpriteSets} from '../../../state/sprite-sets.js';
-import {AbstractCanvasSubRenderer} from '../abstract-canvas-sub-renderer.js';
 import {CanvasFrameType} from "../../../state/options.js";
 
-export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
+export class BufferedCanvasSubRenderer {
   containerElement = null;
   state = null;
   displayContext = null;
@@ -15,7 +13,6 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
   spriteSheetCoordinates = [];
 
   constructor(state, containerElement) {
-    super();
     this.state = state;
     this.containerElement = containerElement;
   }
@@ -37,14 +34,15 @@ export class BufferedCanvasSubRenderer extends AbstractCanvasSubRenderer {
     this.updateDisplaySize();
 
     const spriteSet = SpriteSets[this.state.options.spriteSet];
+    const maxCanvasSize = this.state.options.canvas.maxCanvasSize;
 
     const {
       columns: neededColumns,
       rowsWithOverflow: neededRows,
     } = countToRowsAndColumns(this.state.options.count);
 
-    const maxSpriteColumns = Math.floor(MAX_CANVAS_SIZE / spriteSet.width);
-    const maxSpriteRows = Math.floor(MAX_CANVAS_SIZE / spriteSet.height);
+    const maxSpriteColumns = Math.floor(maxCanvasSize / spriteSet.width);
+    const maxSpriteRows = Math.floor(maxCanvasSize / spriteSet.height);
 
     let spriteColumnsRemaining = neededColumns;
     let spriteRowsRemaining = neededRows;

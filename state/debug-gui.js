@@ -1,11 +1,11 @@
 import {
-	CanvasFrameType,
-	CanvasOffsetStrategy,
-	ImgAnimationStrategy,
-	ImgElementType,
-	ImgOffsetStrategy,
-	RendererOptions,
-	SpriteSetOptions,
+  CanvasFrameType,
+  CanvasOffsetStrategy,
+  ImgAnimationStrategy,
+  ImgElementType,
+  ImgOffsetStrategy, MaxCanvasSize,
+  RendererOptions,
+  SpriteSetOptions,
 } from './options.js';
 import {copyStateAsUrl} from './search-params.js';
 
@@ -101,18 +101,32 @@ export function setupDebugGui(state) {
       }
     });
 
+  let maxCanvasSizeController;
+  const setMaxCanvasSizeVisibility = () => {
+    if (options.canvas.offsetStrategy === CanvasOffsetStrategy.DIRECT_CANVAS) {
+      maxCanvasSizeController.__li.style.display = 'none';
+    } else {
+      maxCanvasSizeController.__li.style.display = '';
+    }
+  };
+
   folders[RendererOptions.CANVAS] = gui.addFolder('Canvas');
   folders[RendererOptions.CANVAS].open();
   folders[RendererOptions.CANVAS].hide();
   folders[RendererOptions.CANVAS]
     .add(options.canvas, 'offsetStrategy', Object.values(CanvasOffsetStrategy))
     .name('Panning')
+    .onChange(setMaxCanvasSizeVisibility);
   folders[RendererOptions.CANVAS]
     .add(options.canvas, 'onlyDrawChanges')
     .name('Only draw changes')
   elementTypeController = folders[RendererOptions.CANVAS]
     .add(options.canvas, 'frameType', Object.values(CanvasFrameType))
     .name('Frame Type');
+  maxCanvasSizeController = folders[RendererOptions.CANVAS]
+    .add(options.canvas, 'maxCanvasSize', Object.values(MaxCanvasSize))
+    .name('Max Canvas Size');
+  setMaxCanvasSizeVisibility();
 
   folders[RendererOptions.WEBGL] = gui.addFolder('WebGL');
   folders[RendererOptions.WEBGL].open();

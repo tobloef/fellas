@@ -1,6 +1,4 @@
-import {AbstractRenderer} from '../abstract-renderer.js';
-
-export class WebgpuRenderer extends AbstractRenderer {
+export class WebgpuRenderer {
   initialize(state, containerElement) {
 
   }

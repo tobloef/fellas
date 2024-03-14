@@ -1,4 +1,3 @@
-import {AbstractRenderer} from '../abstract-renderer.js';
 import {CanvasFrameType, CanvasOffsetStrategy} from '../../state/options.js';
 import {DirectCanvasSubRenderer} from './sub-renderers/direct-canvas-renderer.js';
 import {BufferedCanvasSubRenderer} from './sub-renderers/buffered-canvas-renderer.js';
@@ -6,7 +5,7 @@ import {TiledCanvasSubRenderer} from './sub-renderers/tiled-canvas-renderer.js';
 import {SpriteSets} from "../../state/sprite-sets.js";
 import {randomChoice} from "../../utils/random.js";
 
-export class CanvasRenderer extends AbstractRenderer {
+export class CanvasRenderer {
   subRenderer = null;
   containerElement = null;
   state = null;
@@ -15,8 +14,6 @@ export class CanvasRenderer extends AbstractRenderer {
   lastUpdateTime = performance.now();
 
   constructor(state, containerElement) {
-    super();
-
     this.state = state;
     this.containerElement = containerElement;
 
@@ -32,6 +29,7 @@ export class CanvasRenderer extends AbstractRenderer {
       'options.count',
       'options.spriteSet',
       'options.isAnimatedByDefault',
+      'options.canvas.maxCanvasSize',
       'options.canvas.offsetStrategy',
       'options.canvas.frameType',
     ], this.setup.bind(this));

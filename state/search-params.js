@@ -13,6 +13,7 @@ const STATE_TO_SEARCH_PARAMS = {
       animationStrategy: string,
     },
     canvas: {
+      maxCanvasSize: integer,
       offsetStrategy: string,
       onlyDrawChanges: boolean,
       frameType: string,

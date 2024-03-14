@@ -1,6 +1,4 @@
-import {AbstractRenderer} from '../abstract-renderer.js';
-
-export class WebglRenderer extends AbstractRenderer {
+export class WebglRenderer {
   initialize(state, containerElement) {
 
   }
