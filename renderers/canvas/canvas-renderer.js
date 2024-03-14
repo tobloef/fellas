@@ -3,7 +3,7 @@ import {DirectCanvasSubRenderer} from "./sub-renderers/direct/direct-canvas-rend
 import {BufferedCanvasSubRenderer} from "./sub-renderers/buffered/buffered-canvas-renderer.js";
 import {TiledCanvasSubRenderer} from "./sub-renderers/tiled/tiled-canvas-renderer.js";
 import {SpriteSets} from "../../state/sprite-sets.js";
-import {randomChoice} from "../../utils/random.js";
+import {randomChoice, randomInt} from "../../utils/random.js";
 
 export class CanvasRenderer {
   subRenderer = null;
@@ -11,7 +11,6 @@ export class CanvasRenderer {
   state = null;
   animationFrame = null;
   manualRedraw = false;
-  lastUpdateTime = performance.now();
 
   constructor(state, containerElement) {
     this.state = state;
@@ -66,7 +65,6 @@ export class CanvasRenderer {
     this.setupImages();
     this.subRenderer.setup();
     this.setupFellas();
-    this.updateAnimations()
     this.updateDisplaySize();
     this.updateCamera();
 
@@ -146,32 +144,9 @@ export class CanvasRenderer {
     this.subRenderer.updateCamera();
   }
 
-  updateAnimations() {
-    const updateTime = performance.now();
-    const deltaTime = updateTime - this.lastUpdateTime;
-    this.lastUpdateTime = updateTime;
-
-    const spriteSet = SpriteSets[this.state.options.spriteSet];
-
-    for (const fella of this.subRenderer.fellas) {
-      if (!fella.isAnimated) {
-        continue;
-      }
-
-      fella.timeOnFrame += deltaTime;
-      if (fella.timeOnFrame > spriteSet.frameDuration) {
-        const addedFrames = Math.floor(fella.timeOnFrame / spriteSet.frameDuration);
-        fella.timeOnFrame = fella.timeOnFrame % spriteSet.frameDuration;
-        fella.frame = (fella.frame + addedFrames) % spriteSet.frames;
-        fella.needsRedraw = true;
-      }
-    }
-  }
-
   loop() {
     this.swapFellaVariations();
     this.swapFellaAnimations();
-    this.updateAnimations();
 
     if (!this.manualRedraw) {
       this.subRenderer.draw();
@@ -195,7 +170,7 @@ export class CanvasRenderer {
       };
     }
 
-    if (variationChangesPerFrame > 0) {
+    if (Object.keys(updatedFellas).length > 0) {
       this.subRenderer.updateFellas(updatedFellas);
     }
   }
@@ -208,6 +183,9 @@ export class CanvasRenderer {
     for (let i = 0; i < animationChangesPerFrame; i++) {
       const fellaIndex = randomInt(0, this.subRenderer.fellas.length - 1);
       const fella = this.subRenderer.fellas[fellaIndex];
+      if (fella == null) {
+        continue;
+      }
       updatedFellas[fellaIndex] = {
         isAnimated: !fella.isAnimated,
         frame: 0,
@@ -216,7 +194,7 @@ export class CanvasRenderer {
       };
     }
 
-    if (animationChangesPerFrame > 0) {
+    if (Object.keys(updatedFellas).length > 0) {
       this.subRenderer.updateFellas(updatedFellas);
     }
   }

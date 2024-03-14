@@ -12,6 +12,7 @@ let spriteSheetCoordinates;
 let images;
 let fellas;
 let needsGlobalRedraw;
+let lastUpdateTime = performance.now();
 
 onmessage = handleMessage;
 
@@ -118,6 +119,8 @@ function updateFellas(data) {
 }
 
 function draw() {
+	updateAnimations();
+
 	const redrawAll = !onlyDrawChanges || needsGlobalRedraw;
 
 	if (redrawAll) {
@@ -187,6 +190,26 @@ function draw() {
 	}
 
 	needsGlobalRedraw = false;
+}
+
+function updateAnimations() {
+	const updateTime = performance.now();
+	const deltaTime = updateTime - lastUpdateTime;
+	lastUpdateTime = updateTime;
+
+	for (const fella of fellas) {
+		if (!fella.isAnimated) {
+			continue;
+		}
+
+		fella.timeOnFrame += deltaTime;
+		if (fella.timeOnFrame > spriteSet.frameDuration) {
+			const addedFrames = Math.floor(fella.timeOnFrame / spriteSet.frameDuration);
+			fella.timeOnFrame = fella.timeOnFrame % spriteSet.frameDuration;
+			fella.frame = (fella.frame + addedFrames) % spriteSet.frames;
+			fella.needsRedraw = true;
+		}
+	}
 }
 
 function countToRowsAndColumns(count) {

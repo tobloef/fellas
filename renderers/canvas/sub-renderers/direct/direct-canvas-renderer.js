@@ -11,6 +11,7 @@ export class DirectCanvasSubRenderer {
   fellas = [];
   spriteSheetCoordinates = [];
   worker = null;
+  lastUpdateTime = performance.now();
 
   autoDrawWorker = true;
 
@@ -57,6 +58,8 @@ export class DirectCanvasSubRenderer {
       spriteSet: {
         width: spriteSet.width,
         height: spriteSet.height,
+        frameDuration: spriteSet.frameDuration,
+        frames: spriteSet.frames,
       },
       camera: {
         offset: {
@@ -173,6 +176,8 @@ export class DirectCanvasSubRenderer {
       return;
     }
 
+    this.updateAnimations();
+
     if (this.images == null) {
       return;
     }
@@ -253,6 +258,28 @@ export class DirectCanvasSubRenderer {
     }
 
     this.needsGlobalRedraw = false;
+  }
+
+  updateAnimations() {
+    const updateTime = performance.now();
+    const deltaTime = updateTime - this.lastUpdateTime;
+    this.lastUpdateTime = updateTime;
+
+    const spriteSet = SpriteSets[this.state.options.spriteSet];
+
+    for (const fella of this.fellas) {
+      if (!fella.isAnimated) {
+        continue;
+      }
+
+      fella.timeOnFrame += deltaTime;
+      if (fella.timeOnFrame > spriteSet.frameDuration) {
+        const addedFrames = Math.floor(fella.timeOnFrame / spriteSet.frameDuration);
+        fella.timeOnFrame = fella.timeOnFrame % spriteSet.frameDuration;
+        fella.frame = (fella.frame + addedFrames) % spriteSet.frames;
+        fella.needsRedraw = true;
+      }
+    }
   }
 
   destroy() {
