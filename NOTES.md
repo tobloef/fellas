@@ -52,6 +52,13 @@
   * Buffer has to do more work, so of course it's a slower.
   * My guess is that tiled is faster because even though it is a larger canvas, it doesn't have to as much math, due to lack of scaling.
   * Direct of course becomes much slower than buffer when you pan around.
+* Worker notes:
+  * 100,000 fellas, animated, only draw changes, 1000 variation swaps.
+    * 30 FPS, but not stable. Most time spent drawImage and clearRect.
+    * If worker thread is turned on, the performance is the same, but at least the rest of the UI is smooth.
+    * Actually, maybe the performance is a little better when panning around, due to event handling being able to be smoother?
+* It does not seem to matter if the worker is running the animation loop or not.
+* 
 
 ## Rules/Requirements
 

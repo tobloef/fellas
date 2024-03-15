@@ -13,7 +13,8 @@ export class DirectCanvasSubRenderer {
   worker = null;
   lastUpdateTime = performance.now();
 
-  autoDrawWorker = true;
+  autoDrawWorker = false;
+  readyToDrawAgain = true;
 
   constructor(state, containerElement) {
     this.state = state;
@@ -45,6 +46,11 @@ export class DirectCanvasSubRenderer {
 
   setupWorker(canvas) {
     this.worker = new Worker(new URL("./worker.js", import.meta.url));
+    this.worker.onmessage = (event) => {
+      if (event.data.type === "drawComplete") {
+        this.readyToDrawAgain = true;
+      }
+    }
 
     const offscreenCanvas = canvas.transferControlToOffscreen();
 
@@ -118,15 +124,15 @@ export class DirectCanvasSubRenderer {
         type: "updateFellas",
         updatedFellas,
       });
-    } else {
-      Object.entries(updatedFellas).forEach(([id, fella]) => {
-        if (this.fellas[id] == null) {
-          this.fellas[id] = fella;
-        } else {
-          Object.assign(this.fellas[id], fella);
-        }
-      });
     }
+
+    Object.entries(updatedFellas).forEach(([id, fella]) => {
+      if (this.fellas[id] == null) {
+        this.fellas[id] = fella;
+      } else {
+        Object.assign(this.fellas[id], fella);
+      }
+    });
   }
 
   updateDisplaySize() {
@@ -170,7 +176,8 @@ export class DirectCanvasSubRenderer {
     const useWorker = options.canvas.useWorker;
 
     if (useWorker) {
-      if (!this.autoDrawWorker) {
+      if (!this.autoDrawWorker && this.readyToDrawAgain) {
+        this.readyToDrawAgain = false;
         this.worker.postMessage({ type: "draw" });
       }
       return;
@@ -283,5 +290,8 @@ export class DirectCanvasSubRenderer {
   }
 
   destroy() {
+    if (this.worker != null) {
+      this.worker.terminate();
+    }
   }
 }

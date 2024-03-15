@@ -11,6 +11,10 @@ export class CanvasRenderer {
   state = null;
   animationFrame = null;
   manualRedraw = false;
+  unobserveScreenSize = null;
+  unobserveCameraOffset = null;
+  unobserveOptions = null;
+  removeKeyDownListener = null;
 
   constructor(state, containerElement) {
     this.state = state;
@@ -22,9 +26,20 @@ export class CanvasRenderer {
   }
 
   setupEventListeners() {
-    this.state.observe("screenSize", this.updateDisplaySize.bind(this));
-    this.state.observe("camera.offset", this.updateCamera.bind(this));
-    this.state.observe([
+    this.unobserveScreenSize?.();
+    this.unobserveScreenSize = this.state.observe(
+      "screenSize",
+      this.updateDisplaySize.bind(this)
+    );
+
+    this.unobserveCameraOffset?.();
+    this.unobserveCameraOffset = this.state.observe(
+      "camera.offset",
+      this.updateCamera.bind(this)
+    );
+
+    this.unobserveOptions?.();
+    this.unobserveOptions = this.state.observe([
       "options.count",
       "options.spriteSet",
       "options.isAnimatedByDefault",
@@ -35,14 +50,17 @@ export class CanvasRenderer {
       "options.canvas.onlyDrawChanges",
     ], this.setup.bind(this));
 
-    document.addEventListener("keydown", (event) => {
+    this.removeKeyDownListener?.();
+    const handleKeyDown = (event) => {
       if (event.key === "r") {
         this.subRenderer.draw();
       }
       if (event.key === "R") {
         this.manualRedraw = !this.manualRedraw;
       }
-    });
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    this.removeKeyDownListener = () => document.removeEventListener("keydown", handleKeyDown);
   }
 
   setup() {
@@ -200,8 +218,17 @@ export class CanvasRenderer {
   }
 
   destroy() {
-    this.subRenderer.destroy();
     cancelAnimationFrame(this.animationFrame);
-    this.containerElement.replaceChildren();
+    this.containerElement?.replaceChildren();
+    this.subRenderer?.destroy();
+    this.subRenderer = null;
+    this.unobserveScreenSize?.();
+    this.unobserveScreenSize = null;
+    this.unobserveCameraOffset?.();
+    this.unobserveCameraOffset = null;
+    this.unobserveOptions?.();
+    this.unobserveOptions = null;
+    this.removeKeyDownListener?.();
+    this.removeKeyDownListener = null;
   }
 }

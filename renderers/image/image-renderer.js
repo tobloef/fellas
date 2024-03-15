@@ -10,6 +10,9 @@ export class ImageRenderer {
   animationFrame = null;
   fellasElement = null;
   lastUpdateTime = performance.now();
+  unobserveScreenSize = null;
+  unobserveCameraOffset = null;
+  unobserveOptions = null;
 
   constructor(state, containerElement) {
     this.state = state;
@@ -21,9 +24,20 @@ export class ImageRenderer {
   }
 
   setupStateObservers() {
-    this.state.observe("screenSize", this.updateDisplaySize.bind(this));
-    this.state.observe("camera.offset", this.updateCamera.bind(this));
-    this.state.observe([
+    this.unobserveScreenSize?.();
+    this.unobserveScreenSize = this.state.observe(
+      "screenSize",
+      this.updateDisplaySize.bind(this)
+    );
+
+    this.unobserveCameraOffset?.();
+    this.unobserveCameraOffset = this.state.observe(
+      "camera.offset",
+      this.updateCamera.bind(this)
+    );
+
+    this.unobserveOptions?.();
+    this.unobserveOptions = this.state.observe([
       "options.count",
       "options.spriteSet",
       "options.isAnimatedByDefault",
@@ -226,11 +240,6 @@ export class ImageRenderer {
     this.animationFrame = requestAnimationFrame(this.loop.bind(this));
   }
 
-  destroy() {
-    cancelAnimationFrame(this.animationFrame);
-    this.containerElement.replaceChildren()
-  }
-
   swapFellaVariations() {
     const options = this.state.options;
 
@@ -255,5 +264,16 @@ export class ImageRenderer {
       fella.timeOnFrame = 0;
       fella.needsSrcUpdate = true;
     }
+  }
+
+  destroy() {
+    cancelAnimationFrame(this.animationFrame);
+    this.containerElement?.replaceChildren();
+    this.unobserveScreenSize?.();
+    this.unobserveScreenSize = null;
+    this.unobserveCameraOffset?.();
+    this.unobserveCameraOffset = null;
+    this.unobserveOptions?.();
+    this.unobserveOptions = null;
   }
 }

@@ -1,5 +1,5 @@
 export const DEFAULT_CAMERA = {
-  scale: 1,
+  scale: 0.04,
   offset: { x: 0, y: 0 },
   minScale: 0.01,
   maxScale: 20,

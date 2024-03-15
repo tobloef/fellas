@@ -32,6 +32,7 @@ function handleMessage(event) {
 			break;
 		case "draw":
 			draw();
+			postMessage({ type: "drawComplete" });
 			break;
 		case "setImage":
 			setImage(event.data);
@@ -143,12 +144,12 @@ function draw() {
 		let image;
 		if (fella.isAnimated) {
 			if (frameType === CanvasFrameType.INDIVIDUAL_IMAGES) {
-				image = images.frames[fella.variation][fella.frame];
+				image = images.frames?.[fella.variation]?.[fella.frame];
 			} else if (frameType === CanvasFrameType.SPRITE_SHEET) {
-				image = images.spriteSheets[fella.variation];
+				image = images.spriteSheets?.[fella.variation];
 			}
 		} else {
-			image = images.stills[fella.variation];
+			image = images.stills?.[fella.variation];
 		}
 
 		if (image == null) {
