@@ -2,6 +2,7 @@ import { SpriteSets } from '../../state/sprite-sets.js';
 import {CanvasOffsetStrategy} from "../../state/options.js";
 import {randomChoice} from "../../utils/random.js";
 import {WorkerMessageType} from "./worker-message-type.js";
+import {createFellas} from "./create-fellas.js";
 
 export class CanvasRenderer {
   containerElement = null;
@@ -86,16 +87,7 @@ export class CanvasRenderer {
       scale: initialCamera.scale,
     }
 
-    let fellas = [];
-    for (let i = 0; i < count; i++) {
-      fellas[i] = {
-        isAnimated: isAnimatedByDefault,
-        variation: randomChoice(spriteSet.variations),
-        needsRedraw: true,
-        frame: 0,
-        timeOnFrame: 0,
-      };
-    }
+    const fellas = createFellas(count, isAnimatedByDefault, spriteSet);
 
     this.canvasThing = new CanvasThing({
       ctx,
