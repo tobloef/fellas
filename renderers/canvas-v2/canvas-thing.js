@@ -1,29 +1,36 @@
 class CanvasThing {
+  // From the constructor
   ctx;
   spriteSet;
   useCamera;
   onlyDrawChanges;
   useSpriteSheet;
+  camera;
+  fellas;
 
-  camera = {
-    offset: { x: 0, y: 0 },
-    scale: 1,
-  };
-  fellas = [];
-  images = {
-    stills: [],
-    frames: [],
-    spriteSheets: [],
-  };
-  needsGlobalRedraw = true
-  spriteSheetCoordinates = [];
+  // We set these up internally
+  images;
+  spriteSheetCoordinates;
+  needsGlobalRedraw = true;
 
-  constructor(ctx, spriteSet, useCamera, onlyDrawChanges, useSpriteSheet) {
+  constructor(params) {
+    const {
+      ctx,
+      spriteSet,
+      useCamera,
+      onlyDrawChanges,
+      useSpriteSheet,
+      camera,
+      fellas,
+    } = params;
+
     this.ctx = ctx;
     this.spriteSet = spriteSet;
     this.useCamera = useCamera;
     this.onlyDrawChanges = onlyDrawChanges;
     this.useSpriteSheet = useSpriteSheet;
+    this.camera = camera;
+    this.fellas = fellas;
 
     this.setup();
   }
@@ -45,6 +52,7 @@ class CanvasThing {
       image.onload = async () => {
         const bitmap = await createImageBitmap(image);
         container[key] = bitmap;
+        this.needsGlobalRedraw = true;
       };
     }
 
@@ -71,6 +79,18 @@ class CanvasThing {
       const y = Math.floor(frame / this.spriteSet.spriteSheetDimensions.columns) * this.spriteSet.height;
       this.spriteSheetCoordinates[frame] = { x, y };
     }
+  }
+
+  updateDisplaySize(width, height) {
+    this.ctx.canvas.width = width;
+    this.ctx.canvas.height = height;
+    this.ctx.imageSmoothingEnabled = false;
+    this.needsGlobalRedraw = true;
+  }
+
+  updateCamera(camera) {
+    this.camera = camera;
+    this.needsGlobalRedraw = true;
   }
 
   draw() {
@@ -116,6 +136,10 @@ class CanvasThing {
   }
 
   getImage(fella) {
+    if (this.images == null) {
+      return null;
+    }
+
     if (fella.isAnimated) {
       if (this.useSpriteSheet) {
         return this.images.spriteSheets[fella.variation];

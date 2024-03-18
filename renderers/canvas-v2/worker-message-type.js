@@ -1,0 +1,4 @@
+export const WorkerMessageType = {
+  UPDATE_DISPLAY_SIZE: "UPDATE_DISPLAY_SIZE",
+  UPDATE_CAMERA: "UPDATE_CAMERA",
+}
