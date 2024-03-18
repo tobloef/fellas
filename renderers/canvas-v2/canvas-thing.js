@@ -1,4 +1,4 @@
-class CanvasThing {
+export class CanvasThing {
   // From the constructor
   ctx;
   spriteSet;
@@ -11,7 +11,9 @@ class CanvasThing {
   // We set these up internally
   images;
   spriteSheetCoordinates;
+  animationFrame;
   needsGlobalRedraw = true;
+  lastUpdateTime = performance.now();
 
   constructor(params) {
     const {
@@ -37,6 +39,8 @@ class CanvasThing {
 
   setup() {
     this.setupImages();
+
+    this.loop();
   }
 
   setupImages() {
@@ -45,6 +49,10 @@ class CanvasThing {
       frames: [],
       spriteSheets: [],
     };
+
+    for (const variation of this.spriteSet.variations) {
+      this.images.frames[variation] = [];
+    }
 
     const loadImageInto = (src, container, key) => {
       const image = new Image();
@@ -91,6 +99,34 @@ class CanvasThing {
   updateCamera(camera) {
     this.camera = camera;
     this.needsGlobalRedraw = true;
+  }
+
+  loop() {
+    this.animations();
+    this.draw();
+    this.animationFrame = requestAnimationFrame(
+      this.loop.bind(this)
+    );
+  }
+
+  animations() {
+    const updateTime = performance.now();
+    const deltaTime = updateTime - this.lastUpdateTime;
+    this.lastUpdateTime = updateTime;
+
+    for (const fella of this.fellas) {
+      if (!fella.isAnimated) {
+        continue;
+      }
+
+      fella.timeOnFrame += deltaTime;
+      if (fella.timeOnFrame > this.spriteSet.frameDuration) {
+        const addedFrames = Math.floor(fella.timeOnFrame / this.spriteSet.frameDuration);
+        fella.timeOnFrame = fella.timeOnFrame % this.spriteSet.frameDuration;
+        fella.frame = (fella.frame + addedFrames) % this.spriteSet.frames;
+        fella.needsRedraw = true;
+      }
+    }
   }
 
   draw() {
@@ -157,8 +193,8 @@ class CanvasThing {
         image,
         this.spriteSheetCoordinates[fella.frame].x,
         this.spriteSheetCoordinates[fella.frame].y,
-        width,
-        height,
+        this.spriteSet.width,
+        this.spriteSet.height,
         x,
         y,
         width,
@@ -173,5 +209,9 @@ class CanvasThing {
         height,
       );
     }
+  }
+
+  destroy() {
+    cancelAnimationFrame(this.animationFrame);
   }
 }

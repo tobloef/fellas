@@ -1,10 +1,12 @@
 import { SpriteSets } from '../../state/sprite-sets.js';
 import {CanvasOffsetStrategy} from "../../state/options.js";
-import {randomChoice} from "../../utils/random.js";
 import {WorkerMessageType} from "./worker-message-type.js";
 import {createFellas} from "./create-fellas.js";
+import {CanvasRendererObservers} from "./observers.js";
+import {CanvasFrameType} from "../../state/options.js";
+import {CanvasThing} from "./canvas-thing.js";
 
-export class CanvasRenderer {
+export class CanvasRendererV2 {
   containerElement = null;
   state = null;
   observers = null;
@@ -13,14 +15,18 @@ export class CanvasRenderer {
     this.state = state;
     this.containerElement = containerElement;
 
-    this.observers = new CanvasRendererObservers(state, {
+    this.setup();
+  }
+
+  setup() {
+    this.destroy();
+
+    this.observers = new CanvasRendererObservers(this.state, {
       onScreenSizeUpdate: this.updateScreenSize.bind(this),
       onCameraUpdate: this.updateCamera.bind(this),
       onOptionsUpdate: this.setup.bind(this),
     });
-  }
 
-  setup() {
     const {
       canvas: {
         offsetStrategy,
@@ -54,8 +60,8 @@ export class CanvasRenderer {
       options: {
         count,
         isAnimatedByDefault,
+        spriteSet: spriteSetKey,
         canvas: {
-          spriteSet: spriteSetKey,
           onlyDrawChanges,
           frameType,
         }
@@ -63,6 +69,7 @@ export class CanvasRenderer {
     } = this.state;
 
     const canvas = document.createElement("canvas");
+    this.containerElement.appendChild(canvas);
     canvas.width = screenSize.width;
     canvas.height = screenSize.height;
     canvas.style.width = "100%";
@@ -189,7 +196,9 @@ export class CanvasRenderer {
   }
 
   destroy() {
-    this.observers.destroy();
+    this.observers?.destroy();
     this.observers = null;
+    this.canvasThing?.destroy();
+    this.containerElement.replaceChildren();
   }
 }

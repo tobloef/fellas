@@ -1,4 +1,4 @@
-class CanvasRendererObservers {
+export class CanvasRendererObservers {
   unobserveScreenSize = null;
   unobserveCameraOffset = null;
   unobserveOptions = null;
