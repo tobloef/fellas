@@ -1,15 +1,77 @@
 class CanvasThing {
-  fellas;
   ctx;
-  images;
+  spriteSet;
   useCamera;
-  camera;
-  needsGlobalRedraw;
   onlyDrawChanges;
-  spriteWidth;
-  spriteHeight;
   useSpriteSheet;
-  spriteSheetCoordinates;
+
+  camera = {
+    offset: { x: 0, y: 0 },
+    scale: 1,
+  };
+  fellas = [];
+  images = {
+    stills: [],
+    frames: [],
+    spriteSheets: [],
+  };
+  needsGlobalRedraw = true
+  spriteSheetCoordinates = [];
+
+  constructor(ctx, spriteSet, useCamera, onlyDrawChanges, useSpriteSheet) {
+    this.ctx = ctx;
+    this.spriteSet = spriteSet;
+    this.useCamera = useCamera;
+    this.onlyDrawChanges = onlyDrawChanges;
+    this.useSpriteSheet = useSpriteSheet;
+
+    this.setup();
+  }
+
+  setup() {
+    this.setupImages();
+  }
+
+  setupImages() {
+    this.images = {
+      stills: [],
+      frames: [],
+      spriteSheets: [],
+    };
+
+    const loadImageInto = (src, container, key) => {
+      const image = new Image();
+      image.src = src;
+      image.onload = async () => {
+        const bitmap = await createImageBitmap(image);
+        container[key] = bitmap;
+      };
+    }
+
+    for (const variation of this.spriteSet.variations) {
+      const src = this.spriteSet.assets.stills[variation];
+      loadImageInto(src, this.images.stills, variation);
+    }
+
+    for (const variation of this.spriteSet.variations) {
+      for (let frame = 0; frame < this.spriteSet.frames; frame++) {
+        const src = this.spriteSet.assets.frames[variation][frame];
+        loadImageInto(src, this.images.frames[variation], frame);
+      }
+    }
+
+    for (const variation of this.spriteSet.variations) {
+      const src = this.spriteSet.assets.spriteSheets[variation];
+      loadImageInto(src, this.images.spriteSheets, variation);
+    }
+
+    this.spriteSheetCoordinates = [];
+    for (let frame = 0; frame < this.spriteSet.frames; frame++) {
+      const x = (frame % this.spriteSet.spriteSheetDimensions.columns) * this.spriteSet.width;
+      const y = Math.floor(frame / this.spriteSet.spriteSheetDimensions.columns) * this.spriteSet.height;
+      this.spriteSheetCoordinates[frame] = { x, y };
+    }
+  }
 
   draw() {
     const doFullRedraw = !this.onlyDrawChanges || this.needsGlobalRedraw;
@@ -28,8 +90,8 @@ class CanvasThing {
       scale = this.camera.scale;
     }
 
-    const width = this.spriteWidth * scale;
-    const height = this.spriteHeight * scale;
+    const width = this.spriteSet.width * scale;
+    const height = this.spriteSet.height * scale;
 
     for (const fella of this.fellas) {
       if (!doFullRedraw && !fella.needsRedraw) {
@@ -38,10 +100,14 @@ class CanvasThing {
 
       const image = this.getImage(fella);
 
+      if (image == null) {
+        continue;
+      }
+
       const x = (fella.x + offsetX) * scale;
       const y = (fella.y + offsetY) * scale;
 
-      if (onlyDrawChanges) {
+      if (this.onlyDrawChanges) {
         this.ctx.clearRect(x, y, width, height);
       }
 
