@@ -10,9 +10,8 @@ export class DirectCanvasSubRenderer {
   images = {};
   fellas = [];
   spriteSheetCoordinates = [];
-  worker = null;
   lastUpdateTime = performance.now();
-
+  worker = null;
   autoDrawWorker = false;
   readyToDrawAgain = true;
 
@@ -24,14 +23,13 @@ export class DirectCanvasSubRenderer {
   setup() {
     this.containerElement?.replaceChildren();
     this.ctx = null;
+    this.fellas = [];
 
     const canvas = document.createElement("canvas");
     canvas.width = 0;
     canvas.height = 0;
     canvas.style.imageRendering = "pixelated";
     this.containerElement.appendChild(canvas);
-
-    this.fellas = [];
 
     if (this.state.options.canvas.useWorker) {
       this.setupWorker(canvas);
@@ -126,11 +124,11 @@ export class DirectCanvasSubRenderer {
       });
     }
 
-    Object.entries(updatedFellas).forEach(([id, fella]) => {
-      if (this.fellas[id] == null) {
-        this.fellas[id] = fella;
+    Object.entries(updatedFellas).forEach(([i, fella]) => {
+      if (this.fellas[i] == null) {
+        this.fellas[i] = fella;
       } else {
-        Object.assign(this.fellas[id], fella);
+        Object.assign(this.fellas[i], fella);
       }
     });
   }

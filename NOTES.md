@@ -58,6 +58,7 @@
     * If worker thread is turned on, the performance is the same, but at least the rest of the UI is smooth.
     * Actually, maybe the performance is a little better when panning around, due to event handling being able to be smoother?
 * It does not seem to matter if the worker is running the animation loop or not.
+* Be careful, there's a limit to how many canvases, how many workers and how many core you use. Each of these three is a factor. Check the browser stats.
 * 
 
 ## Rules/Requirements
@@ -116,7 +117,6 @@ Buffer-canvases
 
 ## TODO
 
-* Write some notes on worker support for direct canvas
 * Worker support for tiled canvas
 * Multi-worker support for tiled canvas
 * Write some notes on worker support for tiled canvas
