@@ -1,9 +1,9 @@
 export class WebglRenderer {
-  initialize(state, containerElement) {
+	initialize(state, containerElement) {
 
-  }
+	}
 
-  destroy() {
+	destroy() {
 
-  }
+	}
 }

@@ -20,21 +20,21 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 				canvas: {
 					onlyDrawChanges,
 					frameType,
-				}
-			}
+				},
+			},
 		} = this.state;
 
-		const canvas = document.createElement("canvas");
+		const canvas = document.createElement('canvas');
 		this.containerElement.appendChild(canvas);
 		canvas.width = screenSize.width;
 		canvas.height = screenSize.height;
-		canvas.style.width = "100%";
-		canvas.style.height = "100%";
-		canvas.style.imageRendering = "pixelated";
+		canvas.style.width = '100%';
+		canvas.style.height = '100%';
+		canvas.style.imageRendering = 'pixelated';
 
-		const ctx = canvas.getContext("2d", {
+		const ctx = canvas.getContext('2d', {
 			alpha: false,
-			antialias: false
+			antialias: false,
 		});
 		ctx.imageSmoothingEnabled = false;
 
@@ -48,7 +48,7 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 				y: initialCamera.offset.y,
 			},
 			scale: initialCamera.scale,
-		}
+		};
 
 		const fellas = createFellas(count, isAnimatedByDefault, spriteSet);
 
@@ -74,7 +74,7 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 		} = this.state;
 
 
-		this.canvasThing.updateDisplaySize(width, height)
+		this.canvasThing.updateDisplaySize(width, height);
 	}
 
 	updateCamera() {

@@ -1,6 +1,6 @@
 const CanvasFrameType = {
-	INDIVIDUAL_IMAGES: "Individual Images",
-	SPRITE_SHEET: "Sprite Sheet",
+	INDIVIDUAL_IMAGES: 'Individual Images',
+	SPRITE_SHEET: 'Sprite Sheet',
 };
 
 let ctx;
@@ -18,30 +18,30 @@ onmessage = handleMessage;
 
 function handleMessage(event) {
 	switch (event.data.type) {
-		case "setup":
+		case 'setup':
 			setup(event.data);
 			break;
-		case "updateCamera":
+		case 'updateCamera':
 			updateCamera(event.data);
 			break;
-		case "updateDisplaySize":
+		case 'updateDisplaySize':
 			updateDisplaySize(event.data);
 			break;
-		case "updateFellas":
+		case 'updateFellas':
 			updateFellas(event.data);
 			break;
-		case "draw":
+		case 'draw':
 			draw();
-			postMessage({ type: "drawComplete" });
+			postMessage({ type: 'drawComplete' });
 			break;
-		case "setImage":
+		case 'setImage':
 			setImage(event.data);
 			break;
 	}
 }
 
 function setup(data) {
-	ctx = data.canvas.getContext("2d", { alpha: false, antialias: false });
+	ctx = data.canvas.getContext('2d', { alpha: false, antialias: false });
 	ctx.imageSmoothingEnabled = false;
 
 	camera = data.camera;
@@ -68,13 +68,13 @@ function setImage(data) {
 		images = {};
 	}
 	switch (imageType) {
-		case "still":
+		case 'still':
 			if (images.stills == null) {
 				images.stills = {};
 			}
 			images.stills[variation] = image;
 			break;
-		case "frame":
+		case 'frame':
 			if (images.frames == null) {
 				images.frames = {};
 			}
@@ -83,7 +83,7 @@ function setImage(data) {
 			}
 			images.frames[variation][frame] = image;
 			break;
-		case "spriteSheet":
+		case 'spriteSheet':
 			if (images.spriteSheets == null) {
 				images.spriteSheets = {};
 			}
@@ -110,7 +110,7 @@ function updateCamera(data) {
 
 function updateFellas(data) {
 	const { updatedFellas } = data;
-	Object.entries(updatedFellas).forEach(([id, fella]) => {
+	Object.entries(updatedFellas).forEach(([ id, fella ]) => {
 		if (fellas[id] == null) {
 			fellas[id] = fella;
 		} else {

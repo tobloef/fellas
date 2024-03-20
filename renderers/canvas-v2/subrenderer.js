@@ -8,15 +8,18 @@ export class CanvasSubrenderer {
 	}
 
 	setup() {
-		throw new Error("Extended class must implement own setup method.");
+		throw new Error('Extended class must implement own setup method.');
 	}
+
 	updateCamera() {
-		throw new Error("Extended class must implement own updateCamera method.");
+		throw new Error('Extended class must implement own updateCamera method.');
 	}
+
 	updateScreenSize() {
-		throw new Error("Extended class must implement own updateScreenSize method.");
+		throw new Error('Extended class must implement own updateScreenSize method.');
 	}
+
 	destroy() {
-		throw new Error("Extended class must implement own destroy method.");
+		throw new Error('Extended class must implement own destroy method.');
 	}
 }

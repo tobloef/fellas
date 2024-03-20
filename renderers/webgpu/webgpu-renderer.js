@@ -1,9 +1,9 @@
 export class WebgpuRenderer {
-  initialize(state, containerElement) {
+	initialize(state, containerElement) {
 
-  }
+	}
 
-  destroy() {
+	destroy() {
 
-  }
+	}
 }
