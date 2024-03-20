@@ -118,8 +118,6 @@ export class CanvasThing {
 		for (let i = 0; i < this.variationChangesPerFrame; i++) {
 			const index = randomInt(0, this.fellas.length - 1);
 			this.fellas[index].variation = randomChoice(this.spriteSet.variations);
-			this.fellas[index].frame = 0;
-			this.fellas[index].timeOnFrame = 0;
 			this.fellas[index].needsRedraw = true;
 		}
 
