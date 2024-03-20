@@ -1,8 +1,9 @@
 import { CanvasSubrenderer } from '../subrenderer.js';
 import { SpriteSets } from '../../../state/sprite-sets.js';
 import { CanvasFrameType } from '../../../state/options.js';
-import { createFellas } from '../create-fellas.js';
 import { CanvasThing } from '../canvas-thing.js';
+import { countToRowsAndColumns } from '../../../utils/count-to-rows-and-columns.js';
+import { randomChoice } from '../../../utils/random.js';
 
 export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 	canvasThing = null;
@@ -24,6 +25,42 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 			},
 		} = this.state;
 
+		const spriteSet = SpriteSets[spriteSetKey];
+
+		const useSpriteSheet = frameType === CanvasFrameType.SPRITE_SHEET;
+
+		const camera = {
+			offset: {
+				x: initialCamera.offset.x,
+				y: initialCamera.offset.y,
+			},
+			scale: initialCamera.scale,
+		};
+
+		const { columns } = countToRowsAndColumns(count);
+
+		let column = 0;
+		let row = 0;
+
+		let fellas = [];
+		for (let i = 0; i < count; i++) {
+			fellas[i] = {
+				isAnimated: isAnimatedByDefault,
+				variation: randomChoice(spriteSet.variations),
+				needsRedraw: true,
+				frame: 0,
+				timeOnFrame: 0,
+				x: column * spriteSet.width,
+				y: row * spriteSet.height,
+			};
+
+			column++;
+			if (column >= columns) {
+				column = 0;
+				row++;
+			}
+		}
+
 		const canvas = document.createElement('canvas');
 		this.containerElement.appendChild(canvas);
 		canvas.width = screenSize.width;
@@ -37,20 +74,6 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 			antialias: false,
 		});
 		ctx.imageSmoothingEnabled = false;
-
-		const spriteSet = SpriteSets[spriteSetKey];
-
-		const useSpriteSheet = frameType === CanvasFrameType.SPRITE_SHEET;
-
-		const camera = {
-			offset: {
-				x: initialCamera.offset.x,
-				y: initialCamera.offset.y,
-			},
-			scale: initialCamera.scale,
-		};
-
-		const fellas = createFellas(count, isAnimatedByDefault, spriteSet);
 
 		this.canvasThing = new CanvasThing({
 			ctx,

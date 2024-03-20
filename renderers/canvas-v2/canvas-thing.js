@@ -33,7 +33,7 @@ export class CanvasThing {
 		this.loop();
 	}
 
-	setupImages() {
+	async setupImages() {
 		this.images = {
 			frames: [],
 			spriteSheets: [],
@@ -43,25 +43,53 @@ export class CanvasThing {
 			this.images.frames[variation] = [];
 		}
 
-		const loadImageInto = async (src, container, key) => {
-			const url = new URL(src, this.baseUrl);
-			const response = await fetch(url);
-			const blob = await response.blob();
-			const bitmap = await createImageBitmap(blob);
-			container[key] = bitmap;
-			this.needsGlobalRedraw = true;
-		};
+		if (Image != null) {
+			const loadImageInto = async (src, container, key) => {
+				const url = `${this.baseUrl}/${src}`;
+				const image = new Image();
+				image.src = url;
+				await image.decode();
+				const bitmap = await createImageBitmap(image);
+				container[key] = bitmap;
+				this.needsGlobalRedraw = true;
+			};
 
-		for (const variation of this.spriteSet.variations) {
-			for (let frame = 0; frame < this.spriteSet.frames; frame++) {
-				const src = this.spriteSet.assets.frames[variation][frame];
-				loadImageInto(src, this.images.frames[variation], frame);
+			if (this.useSpriteSheet) {
+				for (const variation of this.spriteSet.variations) {
+					const src = this.spriteSet.assets.spriteSheets[variation];
+					loadImageInto(src, this.images.spriteSheets, variation);
+				}
+			} else {
+				for (const variation of this.spriteSet.variations) {
+					for (let i = 0; i < this.spriteSet.frames; i++) {
+						const src = this.spriteSet.assets.frames[variation][i];
+						loadImageInto(src, this.images.frames[variation], i);
+					}
+				}
 			}
-		}
+		} else {
+			const loadImageInto = async (src, container, key) => {
+				const url = `${this.baseUrl}/${src}`;
+				const response = await fetch(url);
+				const blob = await response.blob();
+				const bitmap = await createImageBitmap(blob);
+				container[key] = bitmap;
+				this.needsGlobalRedraw = true;
+			};
 
-		for (const variation of this.spriteSet.variations) {
-			const src = this.spriteSet.assets.spriteSheets[variation];
-			loadImageInto(src, this.images.spriteSheets, variation);
+			if (this.useSpriteSheet) {
+				for (const variation of this.spriteSet.variations) {
+					const src = this.spriteSet.assets.spriteSheets[variation];
+					await loadImageInto(src, this.images.spriteSheets, variation);
+				}
+			} else {
+				for (const variation of this.spriteSet.variations) {
+					for (let i = 0; i < this.spriteSet.frames; i++) {
+						const src = this.spriteSet.assets.frames[variation][i];
+						await loadImageInto(src, this.images.frames[variation], i);
+					}
+				}
+			}
 		}
 
 		this.spriteSheetCoordinates = [];

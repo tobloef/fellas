@@ -30,6 +30,8 @@ export class CanvasRendererV2 {
 		);
 
 		this.subrenderer.setup();
+		this.subrenderer.updateScreenSize();
+		this.subrenderer.updateCamera();
 
 		this.observers = new CanvasRendererObservers(this.state, {
 			onScreenSizeUpdate: this.subrenderer.updateScreenSize.bind(this.subrenderer),
