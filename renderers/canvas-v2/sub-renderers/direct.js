@@ -62,6 +62,7 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 			fellas,
 			variationChangesPerFrame,
 			animationChangesPerFrame,
+			baseUrl: window.location.origin,
 		});
 	}
 

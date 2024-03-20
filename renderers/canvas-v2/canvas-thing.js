@@ -14,6 +14,7 @@ export class CanvasThing {
 	fellas;
 	animationChangesPerFrame;
 	variationChangesPerFrame;
+	baseUrl;
 
 	// We set these up internally
 	images;
@@ -42,14 +43,13 @@ export class CanvasThing {
 			this.images.frames[variation] = [];
 		}
 
-		const loadImageInto = (src, container, key) => {
-			const image = new Image();
-			image.src = src;
-			image.onload = async () => {
-				const bitmap = await createImageBitmap(image);
-				container[key] = bitmap;
-				this.needsGlobalRedraw = true;
-			};
+		const loadImageInto = async (src, container, key) => {
+			const url = new URL(src, this.baseUrl);
+			const response = await fetch(url);
+			const blob = await response.blob();
+			const bitmap = await createImageBitmap(blob);
+			container[key] = bitmap;
+			this.needsGlobalRedraw = true;
 		};
 
 		for (const variation of this.spriteSet.variations) {

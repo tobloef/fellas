@@ -1,4 +1,5 @@
 export const WorkerMessageType = {
+	SETUP: 'SETUP',
 	UPDATE_DISPLAY_SIZE: 'UPDATE_DISPLAY_SIZE',
 	UPDATE_CAMERA: 'UPDATE_CAMERA',
 };

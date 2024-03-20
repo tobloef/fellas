@@ -2,7 +2,7 @@ import { randomChoice } from '../../utils/random.js';
 import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
 
 export function createFellas(count, isAnimatedByDefault, spriteSet) {
-	const { columns, rowsWithOverflow: rows } = countToRowsAndColumns(count);
+	const { columns } = countToRowsAndColumns(count);
 
 	let column = 0;
 	let row = 0;
