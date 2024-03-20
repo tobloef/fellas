@@ -1,3 +1,8 @@
+import {
+  randomChoice,
+  randomInt,
+} from '../../utils/random.js';
+
 export class CanvasThing {
   // From the constructor
   ctx;
@@ -7,6 +12,8 @@ export class CanvasThing {
   useSpriteSheet;
   camera;
   fellas;
+  animationChangesPerFrame;
+  variationChangesPerFrame;
 
   // We set these up internally
   images;
@@ -16,36 +23,17 @@ export class CanvasThing {
   lastUpdateTime = performance.now();
 
   constructor(params) {
-    const {
-      ctx,
-      spriteSet,
-      useCamera,
-      onlyDrawChanges,
-      useSpriteSheet,
-      camera,
-      fellas,
-    } = params;
-
-    this.ctx = ctx;
-    this.spriteSet = spriteSet;
-    this.useCamera = useCamera;
-    this.onlyDrawChanges = onlyDrawChanges;
-    this.useSpriteSheet = useSpriteSheet;
-    this.camera = camera;
-    this.fellas = fellas;
-
+    Object.assign(this, params);
     this.setup();
   }
 
   setup() {
     this.setupImages();
-
     this.loop();
   }
 
   setupImages() {
     this.images = {
-      stills: [],
       frames: [],
       spriteSheets: [],
     };
@@ -62,11 +50,6 @@ export class CanvasThing {
         container[key] = bitmap;
         this.needsGlobalRedraw = true;
       };
-    }
-
-    for (const variation of this.spriteSet.variations) {
-      const src = this.spriteSet.assets.stills[variation];
-      loadImageInto(src, this.images.stills, variation);
     }
 
     for (const variation of this.spriteSet.variations) {
@@ -101,8 +84,10 @@ export class CanvasThing {
     this.needsGlobalRedraw = true;
   }
 
+
   loop() {
     this.animations();
+    this.swaps();
     this.draw();
     this.animationFrame = requestAnimationFrame(
       this.loop.bind(this)
@@ -126,6 +111,21 @@ export class CanvasThing {
         fella.frame = (fella.frame + addedFrames) % this.spriteSet.frames;
         fella.needsRedraw = true;
       }
+    }
+  }
+
+  swaps() {
+    for (let i = 0; i < this.variationChangesPerFrame; i++) {
+      const index = randomInt(0, this.fellas.length - 1);
+      this.fellas[index].variation = randomChoice(this.spriteSet.variations);
+      this.fellas[index].frame = 0;
+      this.fellas[index].timeOnFrame = 0;
+      this.fellas[index].needsRedraw = true;
+    }
+
+    for (let i = 0; i < this.animationChangesPerFrame; i++) {
+      const index = randomInt(0, this.fellas.length - 1);
+      this.fellas[index].isAnimated = !this.fellas[index].isAnimated;
     }
   }
 
@@ -168,7 +168,10 @@ export class CanvasThing {
       }
 
       this.drawImage(fella, image, x, y, width, height);
+      fella.needsRedraw = false;
     }
+
+    this.needsGlobalRedraw = false;
   }
 
   getImage(fella) {
@@ -176,14 +179,10 @@ export class CanvasThing {
       return null;
     }
 
-    if (fella.isAnimated) {
-      if (this.useSpriteSheet) {
-        return this.images.spriteSheets[fella.variation];
-      } else {
-        return this.images.frames[fella.variation][fella.frame];
-      }
+    if (this.useSpriteSheet) {
+      return this.images.spriteSheets[fella.variation];
     } else {
-      return this.images.stills[fella.variation];
+      return this.images.frames[fella.variation][fella.frame];
     }
   }
 
@@ -213,5 +212,7 @@ export class CanvasThing {
 
   destroy() {
     cancelAnimationFrame(this.animationFrame);
+    this.animationFrame = null;
+    this.images = null;
   }
 }

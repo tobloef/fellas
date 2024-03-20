@@ -32,6 +32,8 @@ export class CanvasRendererObservers {
         "options.count",
         "options.spriteSet",
         "options.isAnimatedByDefault",
+        "options.animationChangesPerFrame",
+        "options.variationChangesPerFrame",
         "options.canvas.maxCanvasSize",
         "options.canvas.offsetStrategy",
         "options.canvas.frameType",
