@@ -43,7 +43,7 @@ export class CanvasThing {
 			this.images.frames[variation] = [];
 		}
 
-		if (Image != null) {
+		if (self.Image != null) {
 			const loadImageInto = async (src, container, key) => {
 				const url = `${this.baseUrl}/${src}`;
 				const image = new Image();
@@ -180,11 +180,6 @@ export class CanvasThing {
 				continue;
 			}
 
-			const image = this.getImage(fella);
-
-			if (image == null) {
-				continue;
-			}
 
 			const x = (fella.x + offsetX) * scale;
 			const y = (fella.y + offsetY) * scale;
@@ -192,6 +187,8 @@ export class CanvasThing {
 			if (this.onlyDrawChanges) {
 				this.ctx.clearRect(x, y, width, height);
 			}
+
+			const image = this.getImage(fella);
 
 			this.drawImage(fella, image, x, y, width, height);
 			fella.needsRedraw = false;
@@ -213,7 +210,15 @@ export class CanvasThing {
 	}
 
 	drawImage(fella, image, x, y, width, height) {
-		if (fella.isAnimated && this.useSpriteSheet) {
+		if (image == null) {
+			return;
+		}
+
+		if (this.spriteSheetCoordinates?.[fella.frame] == null) {
+			return;
+		}
+
+		if (this.useSpriteSheet) {
 			this.ctx.drawImage(
 				image,
 				this.spriteSheetCoordinates[fella.frame].x,
