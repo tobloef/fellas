@@ -1,12 +1,9 @@
 import { WorkerMessageType } from './worker-message-type.js';
 import { CanvasThing } from './canvas-thing.js';
-import { countToRowsAndColumns } from '../../utils/count-to-rows-and-columns.js';
-import { randomChoice } from '../../utils/random.js';
 
 let canvasThing = null;
-let fellas = null;
 
-self.addEventListener('message', handleMessage);
+addEventListener('message', handleMessage);
 
 function handleMessage(event) {
 	switch (event.data.type) {
@@ -24,6 +21,7 @@ function handleMessage(event) {
 
 function setup(data) {
 	const {
+		id,
 		canvas,
 		spriteSet,
 		onlyDrawChanges,
@@ -33,6 +31,7 @@ function setup(data) {
 		animationChangesPerFrame,
 		fellas,
 		baseUrl,
+		sendCanvasBitmaps,
 	} = data;
 
 	const ctx = canvas.getContext('2d', { alpha: false, antialias: false });
@@ -50,6 +49,18 @@ function setup(data) {
 		fellas,
 		baseUrl,
 	});
+
+	if (sendCanvasBitmaps) {
+		canvasThing.onLoop = async () => {
+			const bitmap = await createImageBitmap(canvas);
+
+			postMessage({
+				type: WorkerMessageType.CANVAS_BITMAP,
+				id,
+				bitmap,
+			}, [bitmap]);
+		};
+	}
 }
 
 function updateCamera(data) {

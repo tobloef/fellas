@@ -4,7 +4,6 @@ import {
 } from '../../utils/random.js';
 
 export class CanvasThing {
-	// From the constructor
 	ctx;
 	spriteSet;
 	useCamera;
@@ -16,21 +15,21 @@ export class CanvasThing {
 	variationChangesPerFrame;
 	baseUrl;
 
-	// We set these up internally
 	images;
 	spriteSheetCoordinates;
 	animationFrame;
 	needsGlobalRedraw = true;
 	lastUpdateTime = performance.now();
+	onLoop;
 
 	constructor(params) {
 		Object.assign(this, params);
 		this.setup();
 	}
 
-	setup() {
-		this.setupImages();
-		this.loop();
+	async setup() {
+		await this.setupImages();
+		await this.loop();
 	}
 
 	async setupImages() {
@@ -113,10 +112,13 @@ export class CanvasThing {
 	}
 
 
-	loop() {
+	async loop() {
 		this.animations();
 		this.swaps();
 		this.draw();
+		if (this.onLoop != null) {
+			await this.onLoop();
+		}
 		this.animationFrame = requestAnimationFrame(
 			this.loop.bind(this),
 		);
