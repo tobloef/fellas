@@ -56,8 +56,8 @@ export class TiledWorkerCanvasSubrenderer extends CanvasSubrenderer {
 			const spriteColumn = i % totalSpriteColumns;
 			const spriteRow = Math.floor(i / totalSpriteColumns);
 
-			const canvasRow = Math.floor(spriteColumn / maxSpriteColumns);
-			const canvasColumn = Math.floor(spriteRow / maxSpriteRows);
+			const canvasColumn = Math.floor(spriteColumn / maxSpriteColumns);
+			const canvasRow = Math.floor(spriteRow / maxSpriteRows);
 
 			const spriteRowInCanvas = spriteRow % maxSpriteRows;
 			const spriteColumnInCanvas = spriteColumn % maxSpriteColumns;
@@ -83,15 +83,15 @@ export class TiledWorkerCanvasSubrenderer extends CanvasSubrenderer {
 
 		let columnElements = [];
 
-		for (let row = 0; row < fellasForWorkers.length; row++) {
-			for (let column = 0; column < fellasForWorkers[row].length; column++) {
-				const fellas = fellasForWorkers[row][column];
-
+		for (let column = 0; column < fellasForWorkers.length; column++) {
+			for (let row = 0; row < fellasForWorkers[column].length; row++) {
 				if (!columnElements[column]) {
 					columnElements[column] = document.createElement('div');
 					columnElements[column].className = 'transform-column';
 					this.canvasesElement.appendChild(columnElements[column]);
 				}
+
+				const fellas = fellasForWorkers[column][row];
 
 				const canvas = document.createElement('canvas');
 				columnElements[column].appendChild(canvas);
@@ -99,12 +99,12 @@ export class TiledWorkerCanvasSubrenderer extends CanvasSubrenderer {
 				canvas.width = maxCanvasSize;
 				canvas.height = maxCanvasSize;
 
-				if (row === fellasForWorkers.length - 1) {
-					canvas.height = overflowSpriteRows * spriteSet.height;
+				if (column === fellasForWorkers.length - 1) {
+					canvas.width = overflowSpriteColumns * spriteSet.width;
 				}
 
-				if (column === fellasForWorkers[row].length - 1) {
-					canvas.width = overflowSpriteColumns * spriteSet.width;
+				if (row === fellasForWorkers[column].length - 1) {
+					canvas.height = overflowSpriteRows * spriteSet.height;
 				}
 
 				canvas.style.imageRendering = 'pixelated';

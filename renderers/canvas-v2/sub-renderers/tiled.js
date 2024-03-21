@@ -56,8 +56,8 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 			const spriteColumn = i % totalSpriteColumns;
 			const spriteRow = Math.floor(i / totalSpriteColumns);
 
-			const canvasRow = Math.floor(spriteColumn / maxSpriteColumns);
-			const canvasColumn = Math.floor(spriteRow / maxSpriteRows);
+			const canvasColumn = Math.floor(spriteColumn / maxSpriteColumns);
+			const canvasRow = Math.floor(spriteRow / maxSpriteRows);
 
 			const spriteRowInCanvas = spriteRow % maxSpriteRows;
 			const spriteColumnInCanvas = spriteColumn % maxSpriteColumns;
@@ -101,25 +101,25 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 
 		let columnElements = [];
 
-		for (let row = 0; row < this.canvasThings.length; row++) {
-			for (let column = 0; column < this.canvasThings[row].length; column++) {
+		for (let column = 0; column < this.canvasThings.length; column++) {
+			for (let row = 0; row < this.canvasThings[column].length; row++) {
 				if (!columnElements[column]) {
 					columnElements[column] = document.createElement('div');
 					columnElements[column].className = 'transform-column';
 					this.canvasesElement.appendChild(columnElements[column]);
 				}
 
-				const { canvas } = this.canvasThings[row][column].ctx
+				const { canvas } = this.canvasThings[column][row].ctx
 
 				canvas.width = maxCanvasSize;
 				canvas.height = maxCanvasSize;
 
-				if (row === this.canvasThings.length - 1) {
-					canvas.height = overflowSpriteRows * spriteSet.height;
+				if (column === this.canvasThings.length - 1) {
+					canvas.width = overflowSpriteColumns * spriteSet.width;
 				}
 
-				if (column === this.canvasThings[row].length - 1) {
-					canvas.width = overflowSpriteColumns * spriteSet.width;
+				if (row === this.canvasThings[column].length - 1) {
+					canvas.height = overflowSpriteRows * spriteSet.height;
 				}
 
 				canvas.style.imageRendering = 'pixelated';

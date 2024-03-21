@@ -129,7 +129,7 @@ export function setupDebugGui(state) {
   setMaxCanvasSizeVisibility();
   folders[RendererOptions.CANVAS]
     .add(options.canvas, "useWorker")
-    .name("Use worker");
+    .name("Use worker(s)");
 
   folders[RendererOptions.WEBGL] = gui.addFolder("WebGL");
   folders[RendererOptions.WEBGL].open();
