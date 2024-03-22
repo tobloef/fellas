@@ -2,11 +2,11 @@ import { RendererOptions } from '../state/options.js';
 import { ImageRenderer } from './image/image-renderer.js';
 import { WebglRenderer } from './webgl/webgl-renderer.js';
 import { WebgpuRenderer } from './webgpu/webgpu-renderer.js';
-import { CanvasRendererV2 } from './canvas-v2/canvas-renderer-v2.js';
+import { CanvasRenderer } from './canvas/canvas-renderer.js';
 
 const Renderers = {
 	[RendererOptions.IMAGE]: ImageRenderer,
-	[RendererOptions.CANVAS]: CanvasRendererV2,
+	[RendererOptions.CANVAS]: CanvasRenderer,
 	[RendererOptions.WEBGL]: WebglRenderer,
 	[RendererOptions.WEBGPU]: WebgpuRenderer,
 };

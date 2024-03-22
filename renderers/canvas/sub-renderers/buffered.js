@@ -2,12 +2,12 @@ import { CanvasSubrenderer } from '../subrenderer.js';
 import {SpriteSets} from "../../../state/sprite-sets.js";
 import {randomChoice} from "../../../utils/random.js";
 import {countToRowsAndColumns} from "../../../utils/count-to-rows-and-columns.js";
-import {CanvasThing} from "../canvas-thing.js";
+import {FellaCanvas} from "../fella-canvas.js";
 import {CanvasFrameType} from "../../../state/options.js";
 
 export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 	displayCtx = null;
-	bufferCanvasThings = null;
+	bufferFellaCanvases = null;
 	animationFrame = null;
 
 	setup() {
@@ -82,14 +82,14 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 			});
 		}
 
-		this.bufferCanvasThings = [];
+		this.bufferFellaCanvases = [];
 
 		for (let column = 0; column < fellasForBuffers.length; column++) {
 			for (let row = 0; row < fellasForBuffers[column].length; row++) {
 				const fellas = fellasForBuffers[column][row];
 
-				if (!this.bufferCanvasThings[column]) {
-					this.bufferCanvasThings[column] = [];
+				if (!this.bufferFellaCanvases[column]) {
+					this.bufferFellaCanvases[column] = [];
 				}
 
 				const canvas = new OffscreenCanvas(maxCanvasSize, maxCanvasSize);
@@ -107,7 +107,7 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 					antialias: false,
 				});
 
-				this.bufferCanvasThings[column][row] = new CanvasThing({
+				this.bufferFellaCanvases[column][row] = new FellaCanvas({
 					ctx,
 					spriteSet,
 					useCamera: false,
@@ -145,10 +145,10 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 		let w = 0;
 		let h = 0;
 
-		for (let column = 0; column < this.bufferCanvasThings.length; column++) {
-			for (let row = 0; row < this.bufferCanvasThings[column].length; row++) {
-				const canvasThing = this.bufferCanvasThings[column][row];
-				const canvas = canvasThing.ctx.canvas;
+		for (let column = 0; column < this.bufferFellaCanvases.length; column++) {
+			for (let row = 0; row < this.bufferFellaCanvases[column].length; row++) {
+				const fellaCanvas = this.bufferFellaCanvases[column][row];
+				const canvas = fellaCanvas.ctx.canvas;
 				w = canvas.width * scale;
 				h = canvas.height * scale;
 				this.displayCtx.drawImage(canvas, x, y, w, h);
@@ -184,9 +184,9 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 		this.displayCtx.canvas.remove();
 		this.displayCtx = null;
 
-		for (const column of this.bufferCanvasThings) {
-			for (const canvasThing of column) {
-				canvasThing.destroy();
+		for (const column of this.bufferFellaCanvases) {
+			for (const fellaCanvas of column) {
+				fellaCanvas.destroy();
 			}
 		}
 	}

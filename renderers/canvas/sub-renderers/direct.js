@@ -1,12 +1,12 @@
 import { CanvasSubrenderer } from '../subrenderer.js';
 import { SpriteSets } from '../../../state/sprite-sets.js';
 import { CanvasFrameType } from '../../../state/options.js';
-import { CanvasThing } from '../canvas-thing.js';
+import { FellaCanvas } from '../fella-canvas.js';
 import { countToRowsAndColumns } from '../../../utils/count-to-rows-and-columns.js';
 import { randomChoice } from '../../../utils/random.js';
 
 export class DirectCanvasSubrenderer extends CanvasSubrenderer {
-	canvasThing = null;
+	fellaCanvas = null;
 
 	setup() {
 		const {
@@ -75,7 +75,7 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 		});
 		ctx.imageSmoothingEnabled = false;
 
-		this.canvasThing = new CanvasThing({
+		this.fellaCanvas = new FellaCanvas({
 			ctx,
 			spriteSet,
 			useCamera: true,
@@ -98,15 +98,15 @@ export class DirectCanvasSubrenderer extends CanvasSubrenderer {
 		} = this.state;
 
 
-		this.canvasThing.updateDisplaySize(width, height);
+		this.fellaCanvas.updateDisplaySize(width, height);
 	}
 
 	updateCamera() {
-		this.canvasThing.updateCamera(this.state.camera);
+		this.fellaCanvas.updateCamera(this.state.camera);
 	}
 
 	destroy() {
-		this.canvasThing?.destroy();
-		this.canvasThing = null;
+		this.fellaCanvas?.destroy();
+		this.fellaCanvas = null;
 	}
 }

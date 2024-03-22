@@ -3,7 +3,7 @@ import {
   randomInt,
 } from '../../utils/random.js';
 
-export class CanvasThing {
+export class FellaCanvas {
 	ctx;
 	spriteSet;
 	useCamera;

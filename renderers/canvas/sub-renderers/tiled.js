@@ -2,12 +2,12 @@ import { CanvasSubrenderer } from '../subrenderer.js';
 import { SpriteSets } from '../../../state/sprite-sets.js';
 import { CanvasFrameType } from '../../../state/options.js';
 import { countToRowsAndColumns } from '../../../utils/count-to-rows-and-columns.js';
-import { CanvasThing } from '../canvas-thing.js';
+import { FellaCanvas } from '../fella-canvas.js';
 import { randomChoice } from '../../../utils/random.js';
 
 export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 	canvasesElement = null;
-	canvasThings = null;
+	fellaCanvases = null;
 
 	setup() {
 		const {
@@ -50,7 +50,7 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 		this.canvasesElement.style.height = `${totalHeight}px`;
 		this.containerElement.appendChild(this.canvasesElement);
 
-		this.canvasThings = [];
+		this.fellaCanvases = [];
 
 		for (let i = 0; i < count; i++) {
 			const spriteColumn = i % totalSpriteColumns;
@@ -62,11 +62,11 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 			const spriteRowInCanvas = spriteRow % maxSpriteRows;
 			const spriteColumnInCanvas = spriteColumn % maxSpriteColumns;
 
-			if (!this.canvasThings[canvasColumn]) {
-				this.canvasThings[canvasColumn] = [];
+			if (!this.fellaCanvases[canvasColumn]) {
+				this.fellaCanvases[canvasColumn] = [];
 			}
 
-			if (!this.canvasThings[canvasColumn][canvasRow]) {
+			if (!this.fellaCanvases[canvasColumn][canvasRow]) {
 				const canvas = document.createElement('canvas');
 
 				const ctx = canvas.getContext('2d', {
@@ -75,7 +75,7 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 				});
 				ctx.imageSmoothingEnabled = false;
 
-				this.canvasThings[canvasColumn][canvasRow] = new CanvasThing({
+				this.fellaCanvases[canvasColumn][canvasRow] = new FellaCanvas({
 					ctx,
 					spriteSet,
 					useCamera: false,
@@ -88,7 +88,7 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 				});
 			}
 
-			this.canvasThings[canvasColumn][canvasRow].fellas.push({
+			this.fellaCanvases[canvasColumn][canvasRow].fellas.push({
 				isAnimated: isAnimatedByDefault,
 				variation: randomChoice(spriteSet.variations),
 				needsRedraw: true,
@@ -101,24 +101,24 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 
 		let columnElements = [];
 
-		for (let column = 0; column < this.canvasThings.length; column++) {
-			for (let row = 0; row < this.canvasThings[column].length; row++) {
+		for (let column = 0; column < this.fellaCanvases.length; column++) {
+			for (let row = 0; row < this.fellaCanvases[column].length; row++) {
 				if (!columnElements[column]) {
 					columnElements[column] = document.createElement('div');
 					columnElements[column].className = 'transform-column';
 					this.canvasesElement.appendChild(columnElements[column]);
 				}
 
-				const { canvas } = this.canvasThings[column][row].ctx
+				const { canvas } = this.fellaCanvases[column][row].ctx
 
 				canvas.width = maxCanvasSize;
 				canvas.height = maxCanvasSize;
 
-				if (column === this.canvasThings.length - 1) {
+				if (column === this.fellaCanvases.length - 1) {
 					canvas.width = overflowSpriteColumns * spriteSet.width;
 				}
 
-				if (row === this.canvasThings[column].length - 1) {
+				if (row === this.fellaCanvases[column].length - 1) {
 					canvas.height = overflowSpriteRows * spriteSet.height;
 				}
 
@@ -140,9 +140,9 @@ export class TiledCanvasSubrenderer extends CanvasSubrenderer {
 	updateScreenSize() {}
 
 	destroy() {
-		for (const column of this.canvasThings) {
-			for (const canvasThing of column) {
-				canvasThing.destroy();
+		for (const column of this.fellaCanvases) {
+			for (const fellaCanvas of column) {
+				fellaCanvas.destroy();
 			}
 		}
 

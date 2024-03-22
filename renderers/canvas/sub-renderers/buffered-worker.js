@@ -3,7 +3,7 @@ import {SpriteSets} from "../../../state/sprite-sets.js";
 import {countToRowsAndColumns} from "../../../utils/count-to-rows-and-columns.js";
 import {CanvasFrameType} from "../../../state/options.js";
 import {randomChoice} from "../../../utils/random.js";
-import {CanvasThing} from "../canvas-thing.js";
+import {FellaCanvas} from "../fella-canvas.js";
 import {WorkerMessageType} from "../worker-message-type.js";
 
 export class BufferedWorkerCanvasSubrenderer extends CanvasSubrenderer {

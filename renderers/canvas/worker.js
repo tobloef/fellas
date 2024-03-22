@@ -1,7 +1,7 @@
 import { WorkerMessageType } from './worker-message-type.js';
-import { CanvasThing } from './canvas-thing.js';
+import { FellaCanvas } from './fella-canvas.js';
 
-let canvasThing = null;
+let fellasCanvas = null;
 
 addEventListener('message', handleMessage);
 
@@ -37,7 +37,7 @@ function setup(data) {
 	const ctx = canvas.getContext('2d', { alpha: false, antialias: false });
 	ctx.imageSmoothingEnabled = false;
 
-	canvasThing = new CanvasThing({
+	fellasCanvas = new FellaCanvas({
 		ctx,
 		spriteSet,
 		useCamera: camera != null,
@@ -51,7 +51,7 @@ function setup(data) {
 	});
 
 	if (sendCanvasBitmaps) {
-		canvasThing.onLoop = async () => {
+		fellasCanvas.onLoop = async () => {
 			const bitmap = await createImageBitmap(canvas);
 
 			postMessage({
@@ -64,9 +64,9 @@ function setup(data) {
 }
 
 function updateCamera(data) {
-	canvasThing.updateCamera(data.camera);
+	fellasCanvas.updateCamera(data.camera);
 }
 
 function updateDisplaySize(data) {
-	canvasThing.updateDisplaySize(data.width, data.height);
+	fellasCanvas.updateDisplaySize(data.width, data.height);
 }
