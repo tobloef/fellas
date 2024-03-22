@@ -60,6 +60,37 @@
 * It does not seem to matter if the worker is running the animation loop or not.
 * Be careful, there's a limit to how many canvases, how many workers and how many core you use. Each of these three is a factor. Check the browser stats.
 
+* Canvas Journey (on macbook)
+  * Direct, 10,000, 0 swaps, full redraw
+  * Just below 120 FPS. ~80% CPU. Panning feels smooth.
+  * [Talk about using a worker, to offload the main thread.]
+  * Using profiler we see that `CanvasRenderingContext2D.drawImage` is by far the most expensive part.
+  * How can we reduce that?
+  * We only draw changes of course!
+  * Direct, 1,000,000, 0 swaps, only draw changes.
+  * Takes a few laggy seconds to load.
+  * Stable 120 FPS!
+  * However, we're at 50% CPU even when not moving.
+  * `FellaCanvas.draw` and `FellaCanvas.animations` are the hotspots.
+  * But we're not doing anything?? Well, we are.
+  * We're still looping through every fella and doing an if-check to see if we should draw. That adds up!
+  * Now, there are probably some things we can do around data structures, cache locality, and so on.
+  * But we have way bigger fish to fry. We might visit this at a later date though.
+  * Because when we try to pan around on the canvas, we're suddenly measuring seconds per frame, not frames per second. Oof!
+  * The more fellas needs a redraw per frame (due to animation, etc.), we also see this.
+  * This if of course only natural, the more we have to redraw fellas, the more it lags.
+  * So let's see if we can reduce the need for redrawing.
+  * The panning for example: Here we employ some funky tricks!
+  * CSS Transform, 1,000,000, 0 swaps, only draw changes.
+  * It still takes a while to load, but once everything has settled, we can pan around with a smooth 120 FPS.
+  * If this trick is too weird, we can also implement a version of this with a buffer-canvas.
+  * That way we have more control, at the cost of having to draw the buffers onto another canvas.
+  * [Talk about max canvas size and tiling]
+  * [Talk about multiple workers]
+  * [Talk about which of the canvas approaches gave the best performance for different scenarios]
+  * At 2,000,000 still fellas, my computer starts to look very glitchy.
+  * There are simply too many large canvasses to draw and the GPU starts freaking out.
+
 ## Rules/Requirements
 
 * No relying on occlusion culling, they must all be viewable at the same time

@@ -186,7 +186,7 @@ export class FellaCanvas {
 			const x = (fella.x + offsetX) * scale;
 			const y = (fella.y + offsetY) * scale;
 
-			if (this.onlyDrawChanges) {
+			if (!doFullRedraw) {
 				this.ctx.clearRect(x, y, width, height);
 			}
 
