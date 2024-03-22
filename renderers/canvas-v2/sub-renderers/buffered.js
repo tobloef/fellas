@@ -106,7 +106,6 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 					alpha: false,
 					antialias: false,
 				});
-				ctx.imageSmoothingEnabled = false;
 
 				this.bufferCanvasThings[column][row] = new CanvasThing({
 					ctx,
@@ -174,6 +173,7 @@ export class BufferedCanvasSubrenderer extends CanvasSubrenderer {
 		this.displayCtx.canvas.height = height;
 		this.displayCtx.canvas.style.width = `${width}px`;
 		this.displayCtx.canvas.style.height = `${height}px`;
+		this.displayCtx.canvas.style.imageRendering = 'pixelated';
 		this.displayCtx.imageSmoothingEnabled = false;
 	}
 
