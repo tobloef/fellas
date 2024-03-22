@@ -90,6 +90,7 @@
   * [Talk about which of the canvas approaches gave the best performance for different scenarios]
   * At 2,000,000 still fellas, my computer starts to look very glitchy.
   * There are simply too many large canvasses to draw and the GPU starts freaking out.
+  * Yeah, we need more control. More direct access. We need WebGL.
 
 ## Rules/Requirements
 
@@ -148,3 +149,50 @@ Buffer-canvases
 ## TODO
 
 * Write some notes on performance of the different renderers
+
+# Misc.
+
+### Shader example
+
+https://succinct-wide-sunscreen.glitch.me/
+https://succinct-wide-sunscreen.glitch.me/test.js
+
+```glsl
+///////////////////// Vertex /////////////////////
+
+varying vec2 vUv;
+
+void main() {
+	vUv = uv;
+	gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+
+
+//////////////////// Fragment ////////////////////
+
+uniform sampler2D uTileAtlas;
+uniform sampler2D uTileMap;
+uniform float uSeconds;
+uniform vec2 uMapDim;
+uniform vec2 uAtlasDim;
+
+varying vec2 vUv;
+
+const float sp = 256.0;
+const vec4 splay = vec4(sp, sp * sp, sp * sp * sp, sp * sp * sp * sp);
+
+void main() {
+	vec2 tileUv = fract(vUv * uMapDim);
+	vec4 tileId = texture2D(uTileMap,vUv) * splay;
+	tileId -= fract(tileId);
+	float index = tileId.x + tileId.y + tileId.z + tileId.w;
+	index += uSeconds * 10.;
+	index -= fract(index);
+	vec2 normalizedTileDim = tileUv / uAtlasDim;
+	vec2 tileSize = 1.0 / uAtlasDim;
+	float row = mod(index, uAtlasDim.x);
+	float col = index / uAtlasDim.x;
+	col = mod(col - fract(col), uAtlasDim.y);
+	gl_FragColor = texture2D(uTileAtlas, normalizedTileDim + tileSize*vec2(col,row));
+}
+```
