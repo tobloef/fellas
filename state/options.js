@@ -45,7 +45,7 @@ for (let size = MAX_CANVAS_SIZE; size >= MIN_CANVAS_SIZE; size /= 2) {
 }
 
 export const DEFAULT_OPTIONS = {
-  renderer: RendererOptions.IMAGE,
+  renderer: RendererOptions.WEBGL,
   count: 1000,
   spriteSet: SpriteSetOptions.FROG,
   isAnimatedByDefault: false,
