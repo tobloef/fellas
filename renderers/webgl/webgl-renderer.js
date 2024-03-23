@@ -65,9 +65,12 @@ export class WebglRenderer {
 			in vec2 position;
 			
 			uniform vec2 resolution;
+			uniform float scale;
+			uniform vec2 offset;
 
 			void main() {
-					vec2 clipSpace = ((position / resolution) * 2.0) - 1.0;
+					vec2 pixelSpace = (position + offset) * scale;
+					vec2 clipSpace = ((pixelSpace / resolution) * 2.0) - 1.0;
 					gl_Position = vec4(clipSpace * vec2(1, -1), 0.0, 1.0);
 			}
 		`;
@@ -93,8 +96,10 @@ export class WebglRenderer {
 		const program = createProgram(gl, vertexShader, fragmentShader);
 
 		const positionAttributeLocation = gl.getAttribLocation(program, 'position');
-		const resolutionUniformLocation = gl.getUniformLocation(program, 'resolution');
+		this.resolutionUniformLocation = gl.getUniformLocation(program, 'resolution');
 		this.colorLocation = gl.getUniformLocation(program, 'color');
+		this.offsetLocation = gl.getUniformLocation(program, 'offset');
+		this.scaleLocation = gl.getUniformLocation(program, 'scale');
 
 		const positionBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -128,7 +133,14 @@ export class WebglRenderer {
 		gl.useProgram(program);
 		gl.bindVertexArray(vertexArray);
 
-		gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+		gl.uniform2f(this.resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+		this.positions = new Float32Array([
+			randomInt(0, this.ctx.canvas.width), randomInt(0, this.ctx.canvas.height),
+			randomInt(0, this.ctx.canvas.width), randomInt(0, this.ctx.canvas.height),
+			randomInt(0, this.ctx.canvas.width), randomInt(0, this.ctx.canvas.height),
+		]);
+		gl.uniform4f(this.colorLocation, Math.random(), Math.random(), Math.random(), 1);
 	}
 
 	loop() {
@@ -139,19 +151,21 @@ export class WebglRenderer {
 	draw() {
 		const gl = this.ctx;
 
-		const positions = new Float32Array([
-			randomInt(0, gl.canvas.width), randomInt(0, gl.canvas.height),
-			randomInt(0, gl.canvas.width), randomInt(0, gl.canvas.height),
-			randomInt(0, gl.canvas.width), randomInt(0, gl.canvas.height),
-		]);
-		gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-		gl.uniform4f(this.colorLocation, Math.random(), Math.random(), Math.random(), 1);
+
+		gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
 
 		gl.drawArrays(gl.TRIANGLES, 0, 3);
 	}
 
 	updateCamera() {
+		const gl = this.ctx;
 
+		const { scale, offset: { x, y } } = this.state.camera;
+
+		gl.uniform2f(this.offsetLocation, x, y);
+		gl.uniform1f(this.scaleLocation, scale);
+
+		this.draw();
 	}
 
 	updateScreenSize() {
@@ -161,6 +175,7 @@ export class WebglRenderer {
 		gl.canvas.width = width;
 		gl.canvas.height = height;
 		gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+		gl.uniform2f(this.resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
 	}
 
 	destroy() {
