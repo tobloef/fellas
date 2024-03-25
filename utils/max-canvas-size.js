@@ -70,16 +70,18 @@ function checkSize(ctx, size) {
   ctx.canvas.height = size;
 
   ctx.fillStyle = `rgba(${FILL_COLOR.join(",")})`;
-  ctx.fillRect(0, 0, size, size);
+  ctx.fillRect(size - 1, size - 1, 1, 1);
 
   const data = ctx.getImageData(size - 1, size - 1, 1, 1).data;
 
-  return (
+  const isSizeOkay = (
     data[0] === FILL_COLOR[0] &&
     data[1] === FILL_COLOR[1] &&
     data[2] === FILL_COLOR[2] &&
     data[3] === FILL_COLOR[3]
   );
+
+  return isSizeOkay;
 }
 
 export const MIN_CANVAS_SIZE = 128;
