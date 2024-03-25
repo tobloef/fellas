@@ -150,7 +150,22 @@ Buffer-canvases
 
 * Write some notes on performance of the different renderers
 
-# Misc.
+# WebGL Notes
+
+### Plan
+
+#### Many-quad renderer
+1. Render a quad with a given sprite
+2. Render multiple fellas (one quad each)
+3. Swap fella variations
+4. Animate the sprite on CPU (image per frame)
+5. Animate the sprite on CPU (sprite sheet)
+6. Animate the sprite on GPU (sprite sheet + time-offset)
+
+#### Single-quad renderer
+1. Render a quad with many sprites
+2. Swap fella variations
+3. Animate fellas on the CPU
 
 ### Shader example
 
